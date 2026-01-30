@@ -1,0 +1,159 @@
+{% extends 'shared/base.html' %}
+
+{% block title %}Cashier Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4"><i class="fas fa-cash-register"></i> Cashier Dashboard</h1>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="fas fa-file-invoice"></i>
+                </div>
+                <div class="stat-value">{{ total_bills }}</div>
+                <div class="stat-label">Total Bills</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-value">{{ pending_bills }}</div>
+                <div class="stat-label">Pending Bills</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div class="stat-value">${{ today_payments|floatformat:2 }}</div>
+                <div class="stat-label">Today's Collections</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-info bg-opacity-10 text-info">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-value">${{ month_payments|floatformat:2 }}</div>
+                <div class="stat-label">This Month</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-bolt"></i> Quick Actions
+        </div>
+        <div class="card-body">
+            <div class="d-flex gap-2">
+                <a href="{% url 'create_bill' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create New Bill
+                </a>
+                <a href="{% url 'all_bills' %}" class="btn btn-info">
+                    <i class="fas fa-list"></i> View All Bills
+                </a>
+                <a href="{% url 'all_payments' %}" class="btn btn-success">
+                    <i class="fas fa-receipt"></i> View Payments
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Recent Bills -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-file-invoice-dollar"></i> Recent Bills
+                </div>
+                <div class="card-body">
+                    {% if recent_bills %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Bill #</th>
+                                        <th>Patient</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for bill in recent_bills %}
+                                    <tr>
+                                        <td>{{ bill.bill_number }}</td>
+                                        <td>{{ bill.patient.user.get_full_name }}</td>
+                                        <td>${{ bill.total_amount }}</td>
+                                        <td>
+                                            <span class="badge badge-{% if bill.status == 'paid' %}success{% elif bill.status == 'pending' %}warning{% else %}danger{% endif %}">
+                                                {{ bill.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'bill_detail' bill.id %}" class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No bills yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Payments -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-credit-card"></i> Recent Payments
+                </div>
+                <div class="card-body">
+                    {% if recent_payments %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Reference</th>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in recent_payments %}
+                                    <tr>
+                                        <td>{{ payment.payment_reference }}</td>
+                                        <td>${{ payment.amount }}</td>
+                                        <td>
+                                            <span class="badge badge-info">
+                                                {{ payment.get_payment_method_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ payment.transaction_date|date:"M d, Y" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No payments yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'shared/base.html' %}
+
+{% block title %}My Patients{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4"><i class="fas fa-users"></i> My Patients</h1>
+
+    <div class="card">
+        <div class="card-body">
+            {% if patients %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Patient ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Blood Group</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for patient in patients %}
+                            <tr>
+                                <td>{{ patient.patient_id }}</td>
+                                <td>{{ patient.user.get_full_name }}</td>
+                                <td>{{ patient.user.email }}</td>
+                                <td>{{ patient.user.phone_number|default:"N/A" }}</td>
+                                <td>{{ patient.blood_group|default:"N/A" }}</td>
+                                <td>
+                                    <a href="{% url 'patient_detail' patient.id %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted text-center">No patients assigned yet</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

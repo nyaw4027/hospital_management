@@ -1,0 +1,76 @@
+{% extends 'shared/base.html' %}
+
+{% block title %}Patient Dashboard - Hospital Management System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">Welcome, {{ request.user.first_name }}!</h2>
+    <p class="text-muted">Here’s a quick overview of your account and appointments.</p>
+
+    <!-- Dashboard Cards -->
+    <div class="row g-4 mt-4">
+        <div class="col-md-4">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary mx-auto mb-3">
+                        <i class="fas fa-calendar-check fa-2x"></i>
+                    </div>
+                    <h5>Upcoming Appointments</h5>
+                    <p class="text-muted">{{ upcoming_appointments_count|default:"0" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success mx-auto mb-3">
+                        <i class="fas fa-file-medical fa-2x"></i>
+                    </div>
+                    <h5>Medical Records</h5>
+                    <p class="text-muted">{{ medical_records_count|default:"0" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning mx-auto mb-3">
+                        <i class="fas fa-credit-card fa-2x"></i>
+                    </div>
+                    <h5>Pending Payments</h5>
+                    <p class="text-muted">{{ pending_payments|default:"0" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Appointments Table -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h4>Recent Appointments</h4>
+            {% if recent_appointments %}
+                <table class="table table-striped mt-3">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Doctor</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in recent_appointments %}
+                            <tr>
+                                <td>{{ appointment.date|date:"M d, Y H:i" }}</td>
+                                <td>{{ appointment.doctor.get_full_name }}</td>
+                                <td>{{ appointment.status }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-muted mt-3">You have no recent appointments.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

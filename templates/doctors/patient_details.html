@@ -1,0 +1,120 @@
+{% extends 'shared/base.html' %}
+
+{% block title %}Patient Details{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-user-injured"></i> Patient Details</h1>
+        <a href="{% url 'doctor_patients' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Patients
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Patient Information Card -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-info-circle"></i> Patient Information
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                            <i class="fas fa-user fa-3x"></i>
+                        </div>
+                        <h4>{{ patient.user.get_full_name }}</h4>
+                        <p class="text-muted">{{ patient.patient_id }}</p>
+                    </div>
+                    <hr>
+                    <p><strong>Email:</strong><br>{{ patient.user.email }}</p>
+                    <p><strong>Phone:</strong><br>{{ patient.user.phone_number|default:"N/A" }}</p>
+                    <p><strong>Blood Group:</strong><br>{{ patient.blood_group|default:"N/A" }}</p>
+                    <p><strong>Emergency Contact:</strong><br>
+                        {{ patient.emergency_contact_name|default:"N/A" }}<br>
+                        {{ patient.emergency_contact_phone|default:"" }}
+                    </p>
+                    <div class="mt-3">
+                        <a href="{% url 'add_medical_record' patient.id %}" class="btn btn-primary w-100">
+                            <i class="fas fa-plus"></i> Add Medical Record
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <!-- Appointments -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-calendar-check"></i> Appointments
+                </div>
+                <div class="card-body">
+                    {% if appointments %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Reason</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appointment in appointments %}
+                                    <tr>
+                                        <td>{{ appointment.appointment_date|date:"M d, Y" }}</td>
+                                        <td>{{ appointment.appointment_time|time:"g:i A" }}</td>
+                                        <td>{{ appointment.reason|truncatewords:5 }}</td>
+                                        <td>
+                                            <span class="badge badge-{% if appointment.status == 'completed' %}success{% elif appointment.status == 'scheduled' %}warning{% else %}danger{% endif %}">
+                                                {{ appointment.get_status_display }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No appointments found</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Medical Records -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-file-medical"></i> Medical Records
+                </div>
+                <div class="card-body">
+                    {% if medical_records %}
+                        {% for record in medical_records %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <h6><i class="fas fa-calendar"></i> {{ record.visit_date|date:"M d, Y" }}</h6>
+                                    <span class="badge bg-info">Dr. {{ record.doctor.get_full_name }}</span>
+                                </div>
+                                <hr>
+                                <p><strong>Diagnosis:</strong><br>{{ record.diagnosis }}</p>
+                                <p><strong>Prescription:</strong><br>{{ record.prescription }}</p>
+                                {% if record.test_results %}
+                                    <p><strong>Test Results:</strong><br>{{ record.test_results }}</p>
+                                {% endif %}
+                                {% if record.notes %}
+                                    <p><strong>Notes:</strong><br>{{ record.notes }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No medical records found</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

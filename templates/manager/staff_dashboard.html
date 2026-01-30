@@ -1,0 +1,53 @@
+{% extends 'shared/base.html' %}
+
+{% block title %}Staff Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4"><i class="fas fa-user-tie"></i> Staff Dashboard</h1>
+
+    {% if staff %}
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-id-card"></i> Staff Information
+                </div>
+                <div class="card-body">
+                    <p><strong>Staff ID:</strong> {{ staff.staff_id }}</p>
+                    <p><strong>Name:</strong> {{ staff.user.get_full_name }}</p>
+                    <p><strong>Department:</strong> {{ staff.get_department_display }}</p>
+                    <p><strong>Position:</strong> {{ staff.position }}</p>
+                    <p><strong>Joining Date:</strong> {{ staff.joining_date|date:"M d, Y" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-info-circle"></i> Welcome
+                </div>
+                <div class="card-body">
+                    <h4>Welcome to the Hospital Management System</h4>
+                    <p>You are logged in as a staff member. Your dashboard provides access to department-specific features.</p>
+                    
+                    <hr>
+                    
+                    <h6>Quick Links:</h6>
+                    <ul>
+                        <li>View and update your profile</li>
+                        <li>Access department resources</li>
+                        <li>View announcements and notifications</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i> Your staff profile is not set up yet. Please contact the administrator.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
