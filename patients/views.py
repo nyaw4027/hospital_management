@@ -9,7 +9,7 @@ def patient_dashboard(request):
     """Patient dashboard view"""
     if request.user.role != 'patient':
         messages.error(request, 'Access denied. This area is for patients only.')
-        return redirect('patients/dashboard')
+        return redirect('dashboard')
     
     try:
         patient = Patient.objects.get(user=request.user)

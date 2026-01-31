@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page { size: a4 portrait; margin: 1cm; }
+        body { font-family: sans-serif; color: #333; }
+        .header { text-align: center; border-bottom: 2px solid #0d6efd; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #f8f9fa; padding: 8px; border: 1px solid #dee2e6; text-align: left; }
+        td { padding: 8px; border: 1px solid #dee2e6; font-size: 12px; }
+        .timestamp { color: #666; font-size: 10px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>HMS Activity Report</h1>
+        <p>Generated on: {% now "jS F Y H:i" %}</p>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Action</th>
+                <th>Details</th>
+                <th>Date/Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.user.username }}</td>
+                <td>{{ log.action }}</td>
+                <td>{{ log.details }}</td>
+                <td class="timestamp">{{ log.timestamp }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

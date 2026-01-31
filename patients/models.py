@@ -1,5 +1,6 @@
 from django.db import models
 from accounts.models import User
+from cashier.models import Bill
 
 class Patient(models.Model):
     """Patient model"""
@@ -65,3 +66,16 @@ class MedicalRecord(models.Model):
     
     class Meta:
         ordering = ['-visit_date']
+
+
+class Payment(models.Model):
+    bill = models.ForeignKey('cashier.Bill', on_delete=models.CASCADE)
+    payer = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=[('pending','Pending'),('success','Success')])
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+
+
+

@@ -1,45 +1,134 @@
 {% extends 'shared/base.html' %}
+{% load static %}
 
-{% block title %}Login - Hospital Management System{% endblock %}
+{% block title %}Secure Login - HMS Core{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background-color: #f4f7f6; }
+    .login-container { min-height: 80vh; display: flex; align-items: center; justify-content: center; }
+    .login-card { border: none; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; }
+
+    .login-info-side {
+        background: linear-gradient(rgba(13, 110, 253, 0.85), rgba(0, 33, 71, 0.9)), 
+                    url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 40px;
+    }
+
+    /* Target Django's auto-generated IDs for consistent styling */
+    #id_username, #id_password {
+        width: 100%;
+        padding: 12px 15px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ced4da;
+        border-radius: 10px;
+        box-sizing: border-box;
+        transition: 0.3s;
+    }
+
+    #id_username:focus, #id_password:focus {
+        border-color: #0d6efd;
+        outline: none;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .btn-login {
+        padding: 12px;
+        font-weight: 600;
+        border-radius: 10px;
+        background: #0d6efd;
+        border: none;
+        transition: 0.3s;
+    }
+
+    .btn-login:hover { background: #0056b3; transform: translateY(-2px); }
+    
+    .error-list { list-style: none; padding: 0; margin: 0; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card">
-                <div class="card-body p-4">
-                    <h2 class="text-center mb-4"><i class="fas fa-sign-in-alt"></i> Login</h2>
-                    
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        <div class="form-group mb-3">
-                            <label class="form-label">Username</label>
-                            {{ form.username }}
-                            {% if form.username.errors %}
-                                <div class="text-danger">{{ form.username.errors }}</div>
-                            {% endif %}
+<div class="container login-container my-5">
+    <div class="row w-100 justify-content-center">
+        <div class="col-lg-10">
+            <div class="card login-card shadow-lg">
+                <div class="row g-0">
+                    <div class="col-md-6 d-none d-md-flex login-info-side">
+                        <h2 class="fw-bold mb-4">Welcome Back to <br>HMS Core</h2>
+                        <p class="opacity-75 mb-4">Access your healthcare dashboard, manage patient records, and streamline your medical workflow in one secure environment.</p>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-check-circle me-3 text-warning"></i>
+                            <span>Secure Encrypted Login</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-check-circle me-3 text-warning"></i>
+                            <span>HIPAA Compliant Data Handling</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 bg-white p-5">
+                        <div class="text-center mb-4">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="fas fa-user-lock fa-lg"></i>
+                            </div>
+                            <h3 class="fw-bold">Account Login</h3>
+                            <p class="text-muted small">Please enter your credentials to continue</p>
                         </div>
 
-                        <div class="form-group mb-4">
-                            <label class="form-label">Password</label>
-                            {{ form.password }}
-                            {% if form.password.errors %}
-                                <div class="text-danger">{{ form.password.errors }}</div>
-                            {% endif %}
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger py-2 shadow-sm mb-4">
+                            <ul class="error-list small">
+                                {% for error in form.non_field_errors %}
+                                    <li><i class="fas fa-exclamation-triangle me-2"></i>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
                         </div>
+                        {% endif %}
 
-                        <button type="submit" class="btn btn-primary w-100 mb-3">
-                            <i class="fas fa-sign-in-alt"></i> Login
-                        </button>
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-uppercase mb-0">Username</label>
+                                {{ form.username }}
+                                {% if form.username.errors %}
+                                    <div class="text-danger x-small mt-1">{{ form.username.errors }}</div>
+                                {% endif %}
+                            </div>
 
-                        <div class="text-center">
-                            <p class="mb-0">Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
-                        </div>
-                    </form>
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between">
+                                    <label class="form-label fw-bold small text-uppercase mb-0">Password</label>
+                                    <a href="#" class="text-decoration-none small text-primary">Forgot?</a>
+                                </div>
+                                {{ form.password }}
+                                {% if form.password.errors %}
+                                    <div class="text-danger x-small mt-1">{{ form.password.errors }}</div>
+                                {% endif %}
+                            </div>
 
-                    <!-- Google OAuth can be enabled after configuration in settings -->
+                            <button type="submit" class="btn btn-primary btn-login w-100 mb-4 shadow-sm text-white">
+                                <i class="fas fa-sign-in-alt me-2"></i> Sign In
+                            </button>
+
+                            <div class="text-center">
+                                <p class="text-muted small mb-1">Don't have an account?</p>
+                                <a href="{% url 'register' %}" class="fw-bold text-decoration-none">Create Healthcare Account</a>
+                            </div>
+                        </form>
+                    </div>
                 </div>
+            </div>
+            
+            <div class="text-center mt-4 text-muted small">
+                <i class="fas fa-shield-alt me-1 text-success"></i> SSL Secure Connection | Clinical Grade Security
             </div>
         </div>
     </div>

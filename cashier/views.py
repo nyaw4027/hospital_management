@@ -50,26 +50,50 @@ def cashier_dashboard(request):
     }
     return render(request, 'cashier/dashboard.html', context)
 
+
+
+
+
+
+
 @login_required
 def create_bill(request):
-    """Create a new bill"""
+    """Create a new bill and record payment"""
     if request.user.role not in ['cashier', 'manager']:
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
-    
+
     if request.method == 'POST':
         form = BillForm(request.POST)
         if form.is_valid():
             bill = form.save(commit=False)
             bill.bill_number = f"BILL{uuid.uuid4().hex[:8].upper()}"
-            bill.created_by = request.user
+            bill.created_by = request.user  # cashier creating the bill
+            bill.status = 'pending'         # default
+            bill.save()                     # SAVE the bill first
+
+            # --- RECORD PAYMENT AFTER BILL IS SAVED ---
+            payment = Payment.objects.create(
+                bill=bill,
+                amount=bill.total_amount,
+                payment_method='cash',      # or get from form
+                status='success',
+                processed_by=request.user,
+                payment_reference=f"PAY{uuid.uuid4().hex[:8].upper()}"
+            )
+
+            # Update bill status after payment
+            bill.status = 'paid'
             bill.save()
-            messages.success(request, 'Bill created successfully!')
+
+            messages.success(request, 'Bill created and payment recorded successfully!')
             return redirect('bill_detail', bill_id=bill.id)
     else:
         form = BillForm()
-    
+
     return render(request, 'cashier/create_bill.html', {'form': form})
+
+
 
 @login_required
 def bill_detail(request, bill_id):

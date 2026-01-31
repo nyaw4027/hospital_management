@@ -1,186 +1,138 @@
 {% extends 'shared/base.html' %}
+{% load static %}
 
-{% block title %}My Profile{% endblock %}
+{% block title %}My Profile | HMS Core{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1 class="mb-4"><i class="fas fa-user"></i> My Profile</h1>
+<div class="container py-5">
+    {% if not user.profile.is_verified %}
+    <div class="alert alert-warning d-flex align-items-center mb-4 rounded-4 shadow-sm" role="alert">
+        <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+        <div>
+            <strong>Account Pending Verification:</strong> Please upload your ID or Insurance card below to access full hospital services.
+        </div>
+    </div>
+    {% endif %}
 
     <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body text-center">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="bg-primary py-5 text-center">
                     {% if user.profile_picture %}
-                        <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                        <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle border border-4 border-white shadow" style="width: 120px; height: 120px; object-fit: cover;">
                     {% else %}
-                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
-                            <i class="fas fa-user fa-5x"></i>
+                        <div class="bg-white text-primary rounded-circle mx-auto d-flex align-items-center justify-content-center shadow" style="width: 120px; height: 120px; font-size: 3rem; font-weight: bold;">
+                            {{ user.username|first|upper }}
                         </div>
                     {% endif %}
-                    <h3>{{ user.get_full_name }}</h3>
-                    <p class="text-muted">@{{ user.username }}</p>
-                    <span class="badge bg-primary">{{ user.get_role_display }}</span>
                 </div>
+                <div class="card-body text-center pt-4">
+                    <h3 class="fw-bold mb-0">{{ user.get_full_name|default:user.username }}</h3>
+                    <p class="text-muted small">@{{ user.username }}</p>
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <span class="badge bg-primary-subtle text-primary px-3 rounded-pill text-uppercase">{{ user.role }}</span>
+                        {% if user.profile.is_verified %}
+                            <span class="badge bg-success px-3 rounded-pill"><i class="fas fa-check-circle me-1"></i> Verified</span>
+                        {% endif %}
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm w-100 rounded-pill">Edit Basic Info</button>
+                </div>
+            </div>
+            
+            <div class="list-group shadow-sm mt-4 rounded-4 border-0">
+                <a href="#" class="list-group-item list-group-item-action border-0 py-3"><i class="fas fa-key me-2"></i> Change Password</a>
+                <a href="{% url 'contact' %}" class="list-group-item list-group-item-action border-0 py-3"><i class="fas fa-headset me-2"></i> Get Support</a>
             </div>
         </div>
 
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-info-circle"></i> Personal Information
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-id-card text-primary me-2"></i> Account Details</h5>
+                    <span class="text-muted small">Joined {{ user.date_joined|date:"M d, Y" }}</span>
                 </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>Username:</strong>
+                <div class="card-body bg-light mx-3 mb-3 rounded-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small d-block">Email Address</label>
+                            <span class="fw-semibold">{{ user.email }}</span>
                         </div>
-                        <div class="col-md-8">
-                            {{ user.username }}
+                        <div class="col-md-6">
+                            <label class="text-muted small d-block">Phone Number</label>
+                            <span class="fw-semibold">{{ user.phone_number|default:"Not Linked" }}</span>
                         </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>Email:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            {{ user.email }}
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>Full Name:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            {{ user.first_name }} {{ user.last_name }}
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>Phone Number:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            {{ user.phone_number|default:"Not provided" }}
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>Address:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            {{ user.address|default:"Not provided" }}
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>Date of Birth:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            {{ user.date_of_birth|date:"M d, Y"|default:"Not provided" }}
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>Member Since:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            {{ user.date_joined|date:"M d, Y" }}
+                        <div class="col-12">
+                            <label class="text-muted small d-block">Residential Address</label>
+                            <span class="fw-semibold">{{ user.address|default:"No address set" }}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             {% if user.role == 'patient' and user.patient_profile %}
-            <div class="card mt-4">
-                <div class="card-header">
-                    <i class="fas fa-heartbeat"></i> Medical Information
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-heartbeat text-danger me-2"></i> Medical Profile</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>Patient ID:</strong>
+                    <div class="row text-center">
+                        <div class="col-4 border-end">
+                            <h6 class="text-muted small text-uppercase">Blood Group</h6>
+                            <p class="fw-bold text-danger mb-0">{{ user.patient_profile.blood_group|default:"--" }}</p>
                         </div>
-                        <div class="col-md-8">
-                            {{ user.patient_profile.patient_id }}
+                        <div class="col-4 border-end">
+                            <h6 class="text-muted small text-uppercase">Patient ID</h6>
+                            <p class="fw-bold mb-0">{{ user.patient_profile.patient_id }}</p>
                         </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>Blood Group:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            {{ user.patient_profile.blood_group|default:"Not provided" }}
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>Emergency Contact:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            {{ user.patient_profile.emergency_contact_name|default:"Not provided" }}<br>
-                            {{ user.patient_profile.emergency_contact_phone|default:"" }}
+                        <div class="col-4">
+                            <h6 class="text-muted small text-uppercase">Emergency</h6>
+                            <p class="fw-bold mb-0 text-truncate">{{ user.patient_profile.emergency_contact_phone|default:"N/A" }}</p>
                         </div>
                     </div>
                 </div>
             </div>
             {% endif %}
 
-            {% if user.role == 'doctor' and user.doctor_profile %}
-            <div class="card mt-4">
-                <div class="card-header">
-                    <i class="fas fa-user-md"></i> Professional Information
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-cloud-upload-alt text-primary me-2"></i> Verification Documents</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>Doctor ID:</strong>
+                    <p class="text-muted small mb-4">Upload a clear photo of your National ID or Insurance Card. Accepted formats: JPG, PNG, PDF (Max 5MB).</p>
+                    
+                    <form method="post" enctype="multipart/form-data" class="row g-3">
+                        {% csrf_token %}
+                        <div class="col-md-6">
+                            <select class="form-select rounded-pill" name="doc_type" required>
+                                <option value="" selected disabled>Select Document Type</option>
+                                <option value="national_id">National ID (Ghana Card)</option>
+                                <option value="insurance">NHIS / Private Insurance</option>
+                                <option value="license">Medical License (Doctors Only)</option>
+                            </select>
                         </div>
-                        <div class="col-md-8">
-                            {{ user.doctor_profile.doctor_id }}
+                        <div class="col-md-6">
+                            <input type="file" class="form-control rounded-pill" name="doc_file" required>
                         </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>Specialization:</strong>
+                        <div class="col-12 mt-3">
+                            <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold">
+                                Upload for Review
+                            </button>
                         </div>
-                        <div class="col-md-8">
-                            {{ user.doctor_profile.get_specialization_display }}
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>License Number:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            {{ user.doctor_profile.license_number }}
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>Qualification:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            {{ user.doctor_profile.qualification }}
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>Experience:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            {{ user.doctor_profile.experience_years }} years
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>Consultation Fee:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            ${{ user.doctor_profile.consultation_fee }}
+                    </form>
+
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="fw-bold small text-uppercase text-muted">Uploaded Files</h6>
+                        <div class="d-flex align-items-center p-2 mt-2 bg-light rounded-3">
+                            <i class="fas fa-file-pdf text-danger fs-4 me-3"></i>
+                            <div class="flex-grow-1">
+                                <span class="d-block small fw-bold">ID_Verification_Draft.pdf</span>
+                                <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">Pending Review</span>
+                            </div>
+                            <button class="btn btn-sm text-danger"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 </div>
             </div>
-            {% endif %}
         </div>
     </div>
 </div>

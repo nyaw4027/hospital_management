@@ -1,101 +1,154 @@
 {% extends 'shared/base.html' %}
+{% load static %}
 
-{% block title %}Home - Hospital Management System{% endblock %}
+{% block title %}Welcome to HMS Core | Premium Healthcare Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section with Parallax Effect */
+    .hero-wrap {
+        height: 80vh;
+        min-height: 500px;
+        background: linear-gradient(rgba(12, 30, 62, 0.8), rgba(13, 110, 253, 0.6)), 
+                    url('https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1920&q=80');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        display: flex;
+        align-items: center;
+        color: white;
+    }
+
+    .hero-content h1 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        letter-spacing: -1px;
+    }
+
+    /* Portal Cards - Enhanced for Interactivity */
+    .portal-link {
+        text-decoration: none !important;
+        color: inherit;
+        display: block;
+    }
+
+    .portal-card {
+        border: none;
+        border-radius: 15px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        background: #ffffff;
+        margin-top: -60px; /* Overlaps hero */
+        z-index: 10;
+        cursor: pointer;
+    }
+
+    .portal-card:hover {
+        transform: translateY(-15px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.12) !important;
+        background-color: #fcfcfc;
+    }
+
+    .icon-box {
+        width: 60px;
+        height: 60px;
+        background: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        transition: 0.3s;
+    }
+
+    .portal-card:hover .icon-box {
+        background: #0d6efd;
+        color: #fff;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 991.98px) {
+        .portal-card { margin-top: 20px; }
+        .hero-content h1 { font-size: 2.5rem; }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="hero">
-    <div class="container">
-        <h1><i class="fas fa-hospital-alt"></i> Welcome to Hospital Management System</h1>
-        <p>Comprehensive healthcare management solution for modern hospitals</p>
-        {% if not user.is_authenticated %}
-        <div class="d-flex justify-content-center gap-3">
-            <a href="{% url 'register' %}" class="btn btn-light btn-lg">
-                <i class="fas fa-user-plus"></i> Get Started
-            </a>
-            <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">
-                <i class="fas fa-sign-in-alt"></i> Login
-            </a>
-        </div>
-        {% endif %}
-    </div>
-</div>
 
-<div class="container py-5">
-    <div class="row g-4">
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <div class="stat-icon bg-primary bg-opacity-10 text-primary mx-auto mb-3">
-                        <i class="fas fa-user-md"></i>
-                    </div>
-                    <h3>For Doctors</h3>
-                    <p class="text-muted">Manage patients, appointments, and medical records efficiently</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <div class="stat-icon bg-success bg-opacity-10 text-success mx-auto mb-3">
-                        <i class="fas fa-user-injured"></i>
-                    </div>
-                    <h3>For Patients</h3>
-                    <p class="text-muted">Book appointments and access your medical records anytime</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <div class="stat-icon bg-warning bg-opacity-10 text-warning mx-auto mb-3">
-                        <i class="fas fa-cash-register"></i>
-                    </div>
-                    <h3>For Cashiers</h3>
-                    <p class="text-muted">Process payments and manage billing seamlessly</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <div class="stat-icon bg-danger bg-opacity-10 text-danger mx-auto mb-3">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h3>For Managers</h3>
-                    <p class="text-muted">Monitor operations and access comprehensive reports</p>
-                </div>
+<section class="hero-wrap">
+    <div class="container text-center text-lg-start">
+        <div class="row">
+            <div class="col-lg-7 hero-content">
+                <span class="badge bg-primary mb-3 px-3 py-2 text-uppercase">Trusted Healthcare Partner</span>
+                <h1>Compassionate Care <br>Powered by Innovation</h1>
+                <p class="lead opacity-90 mb-5">
+                    Our Hospital Management System integrates every department—from clinical 
+                    records to financial billing—into one seamless, secure experience.
+                </p>
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5 rounded-pill shadow me-3">Get Started</a>
+                    <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg px-5 rounded-pill">Staff Login</a>
+                {% else %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg px-5 rounded-pill shadow">Go to Dashboard</a>
+                {% endif %}
             </div>
         </div>
     </div>
+</section>
 
-    <div class="row mt-5">
-        <div class="col-md-12">
-            <h2 class="text-center mb-4">Key Features</h2>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5><i class="fas fa-calendar-check text-primary"></i> Appointment Management</h5>
-                    <p class="text-muted">Easy scheduling and tracking of patient appointments with doctors</p>
+<section class="container mb-5">
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-6 col-lg">
+            <a href="{% url 'doctor_dashboard' %}" class="portal-link">
+                <div class="card portal-card shadow-sm h-100 p-4">
+                    <div class="icon-box"><i class="fas fa-user-md"></i></div>
+                    <h6 class="fw-bold">Doctor Portal</h6>
+                    <p class="text-muted small mb-0">Manage patient history, e-prescriptions, and schedules.</p>
                 </div>
-            </div>
+            </a>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5><i class="fas fa-file-medical text-success"></i> Medical Records</h5>
-                    <p class="text-muted">Secure digital storage of patient medical history and records</p>
+        <div class="col-md-6 col-lg">
+            <a href="{% url 'patient_dashboard' %}" class="portal-link">
+                <div class="card portal-card shadow-sm h-100 p-4">
+                    <div class="icon-box"><i class="fas fa-procedures"></i></div>
+                    <h6 class="fw-bold">Patient Care</h6>
+                    <p class="text-muted small mb-0">Access test results, book appointments, and view invoices.</p>
                 </div>
-            </div>
+            </a>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5><i class="fas fa-credit-card text-warning"></i> Payment Integration</h5>
-                    <p class="text-muted">Seamless payment processing with Paystack integration</p>
+        <div class="col-md-6 col-lg">
+           <a href="{% url 'pharmacy_dashboard' %}" class="portal-link">
+                <div class="card portal-card shadow-sm h-100 p-4">
+                    <div class="icon-box"><i class="fas fa-pills"></i></div>
+                    <h6 class="fw-bold">Pharmacy</h6>
+                    <p class="text-muted small mb-0">Track inventory and automate medication dispensing alerts.</p>
                 </div>
-            </div>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg">
+            <a href="{% url 'lab_dashboard' %}" class="portal-link">
+                <div class="card portal-card shadow-sm h-100 p-4">
+                    <div class="icon-box"><i class="fas fa-microscope"></i></div>
+                    <h6 class="fw-bold">Laboratory</h6>
+                    <p class="text-muted small mb-0">Process diagnostic requests and secure result uploads.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg">
+            <a href="{% url 'cashier_dashboard' %}" class="portal-link">
+                <div class="card portal-card shadow-sm h-100 p-4">
+                    <div class="icon-box"><i class="fas fa-wallet"></i></div>
+                    <h6 class="fw-bold">Billing</h6>
+                    <p class="text-muted small mb-0">Financial tracking with secure payment gateways.</p>
+                </div>
+            </a>
         </div>
     </div>
-</div>
+</section>
+
+<section class="py-5">
+    </section>
+
 {% endblock %}

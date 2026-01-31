@@ -1,0 +1,21 @@
+{% extends 'shared/base.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm p-5">
+                <h2 class="text-center fw-bold mb-4">Get In Touch</h2>
+                <form>
+                    <div class="row g-3">
+                        <div class="col-md-6"><input type="text" class="form-control" placeholder="Your Name"></div>
+                        <div class="col-md-6"><input type="email" class="form-control" placeholder="Email Address"></div>
+                        <div class="col-12"><input type="text" class="form-control" placeholder="Subject"></div>
+                        <div class="col-12"><textarea class="form-control" rows="5" placeholder="Your Message"></textarea></div>
+                        <div class="col-12"><button class="btn btn-primary w-100 py-3">Send Message</button></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

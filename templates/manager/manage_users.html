@@ -1,54 +1,113 @@
 {% extends 'shared/base.html' %}
 
-{% block title %}Manage Users{% endblock %}
+{% block title %}User Management - HMS Admin{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1 class="mb-4"><i class="fas fa-users-cog"></i> Manage Users</h1>
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold"><i class="fas fa-users-cog text-primary"></i> User Management</h2>
+        <form class="d-flex" method="GET">
+            <input class="form-control me-2 rounded-pill" type="search" name="search" placeholder="Search by name or email..." value="{{ request.GET.search }}">
+            <button class="btn btn-primary rounded-pill px-4" type="submit">Search</button>
+        </form>
+    </div>
 
-    <div class="card">
-        <div class="card-body">
-            {% if users %}
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Username</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Status</th>
-                                <th>Joined</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for user in users %}
-                            <tr>
-                                <td>{{ user.username }}</td>
-                                <td>{{ user.get_full_name }}</td>
-                                <td>{{ user.email }}</td>
-                                <td>
-                                    <span class="badge bg-primary">
-                                        {{ user.get_role_display }}
-                                    </span>
-                                </td>
-                                <td>
-                                    {% if user.is_active %}
-                                        <span class="badge badge-success">Active</span>
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">User</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Joined Date</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm me-3 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px;">
+                                    {{ u.username|first|upper }}
+                                </div>
+                                <div>
+                                    <span class="d-block fw-bold text-dark">{{ u.get_full_name|default:u.username }}</span>
+                                    <span class="text-muted small">{{ u.email }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge {% if u.role == 'doctor' %}bg-info{% elif u.role == 'manager' %}bg-dark{% elif u.role == 'patient' %}bg-success{% else %}bg-secondary{% endif %} rounded-pill">
+                                {{ u.role|upper|default:"NONE" }}
+                            </span>
+                        </td>
+                        
+                        <td>
+                            {% if not u.is_active %}
+                                <span class="badge bg-danger rounded-pill">
+                                    <i class="fas fa-user-slash me-1"></i> Deactivated
+                                </span>
+                            {% elif u.profile.is_verified %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3">
+                                    <i class="fas fa-check-circle me-1"></i> Verified
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3">
+                                    <i class="fas fa-clock me-1"></i> Pending
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-muted small">{{ u.date_joined|date:"M d, Y" }}</td>
+                        <td class="text-end pe-4">
+                            <div class="dropdown">
+                                <button class="btn btn-light btn-sm rounded-pill" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
+                                    {% if not u.profile.is_verified %}
+                                        <li><a class="dropdown-item" href="{% url 'verify_user' u.id %}"><i class="fas fa-user-check me-2 text-success"></i> Verify Account</a></li>
                                     {% else %}
-                                        <span class="badge badge-danger">Inactive</span>
+                                        <li><span class="dropdown-item text-muted small"><i class="fas fa-check-circle me-2"></i> Account Verified</span></li>
                                     {% endif %}
-                                </td>
-                                <td>{{ user.date_joined|date:"M d, Y" }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <p class="text-muted text-center">No users found</p>
-            {% endif %}
+
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Assign Role</h6></li>
+                                    <li><a class="dropdown-item" href="{% url 'update_user_status' u.id 'doctor' %}"><i class="fas fa-user-md me-2 text-info"></i> Set as Doctor</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'update_user_status' u.id 'pharmacy' %}"><i class="fas fa-pills me-2 text-warning"></i> Set as Pharmacist</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'update_user_status' u.id 'cashier' %}"><i class="fas fa-cash-register me-2 text-primary"></i> Set as Cashier</a></li>
+                                    
+                                    <li><hr class="dropdown-divider"></li>
+                                    {% if u.is_active %}
+                                        <li><a class="dropdown-item text-danger" href="{% url 'update_user_status' u.id 'deactivate' %}" onclick="return confirm('Deactivate this user?')">
+                                            <i class="fas fa-ban me-2"></i> Deactivate User
+                                        </a></li>
+                                    {% else %}
+                                        <li><a class="dropdown-item text-success" href="{% url 'update_user_status' u.id 'activate' %}">
+                                            <i class="fas fa-check me-2"></i> Reactivate User
+                                        </a></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+
+<style>
+    /* Styling for the subtle success/warning badges */
+    .bg-success-subtle { background-color: #d1e7dd; }
+    .text-success { color: #0f5132 !important; }
+    .border-success-subtle { border-color: #badbcc !important; }
+    
+    .bg-warning-subtle { background-color: #fff3cd; }
+    .text-warning { color: #664d03 !important; }
+    .border-warning-subtle { border-color: #ffecb5 !important; }
+</style>
 {% endblock %}

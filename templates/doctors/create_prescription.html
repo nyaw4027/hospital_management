@@ -1,0 +1,115 @@
+{% extends 'shared/base.html' %}
+
+{% block title %}Issue Prescription | HMS Core{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-primary text-white p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0 fw-bold"><i class="fas fa-file-medical me-2"></i> New Prescription</h4>
+                        <span class="small">Date: {% now "jS F, Y" %}</span>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <form method="post" id="prescriptionForm">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Select Patient</label>
+                                <select class="form-select rounded-pill" name="patient" required>
+                                    <option value="" disabled selected>Search for patient...</option>
+                                    {% for p in patients %}
+                                        <option value="{{ p.id }}">{{ p.get_full_name }} ({{ p.username }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Diagnosis / Notes</label>
+                                <input type="text" name="diagnosis" class="form-control rounded-pill" placeholder="e.g. Seasonal Flu">
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h6 class="fw-bold mb-3">Medications & Dosage</h6>
+                        <div class="table-responsive">
+                            <table class="table align-middle" id="medicationTable">
+                                <thead class="table-light">
+                                    <tr class="small text-uppercase">
+                                        <th style="width: 40%;">Medicine Name</th>
+                                        <th>Dosage</th>
+                                        <th>Duration</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><input type="text" name="medicine_name[]" class="form-control" placeholder="e.g. Amoxicillin" required></td>
+                                        <td><input type="text" name="dosage[]" class="form-control" placeholder="1 tab, 3x daily" required></td>
+                                        <td><input type="text" name="duration[]" class="form-control" placeholder="7 days" required></td>
+                                        <td><button type="button" class="btn btn-outline-danger btn-sm rounded-circle remove-row"><i class="fas fa-times"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-link text-primary p-0 fw-bold" id="addRow">
+                                <i class="fas fa-plus-circle me-1"></i> Add Another Medication
+                            </button>
+                        </div>
+
+                        <div class="mt-5 d-flex justify-content-between">
+                            <a href="{% url 'doctor_dashboard' %}" class="btn btn-light px-4 rounded-pill">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-5 rounded-pill fw-bold shadow">
+                                <i class="fas fa-check-circle me-2"></i> Save & Issue Prescription
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tableBody = document.querySelector('#medicationTable tbody');
+        const addRowBtn = document.getElementById('addRow');
+
+        // Function to add a new row
+        addRowBtn.addEventListener('click', function() {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="text" name="medicine_name[]" class="form-control" placeholder="e.g. Amoxicillin" required></td>
+                <td><input type="text" name="dosage[]" class="form-control" placeholder="1 tab, 3x daily" required></td>
+                <td><input type="text" name="duration[]" class="form-control" placeholder="7 days" required></td>
+                <td><button type="button" class="btn btn-outline-danger btn-sm rounded-circle remove-row"><i class="fas fa-times"></i></button></td>
+            `;
+            tableBody.appendChild(newRow);
+            
+            // Attach event listener to the new delete button
+            attachRemoveEvent(newRow.querySelector('.remove-row'));
+        });
+
+        // Function to handle row removal
+        function attachRemoveEvent(button) {
+            button.addEventListener('click', function() {
+                const rows = tableBody.querySelectorAll('tr');
+                if (rows.length > 1) {
+                    this.closest('tr').remove();
+                } else {
+                    alert("At least one medication is required.");
+                }
+            });
+        }
+
+        // Attach event listener to existing initial row(s)
+        document.querySelectorAll('.remove-row').forEach(button => {
+            attachRemoveEvent(button);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends 'shared/base.html' %}
+
+{% block title %}Pharmacy Command Center - HMS Core{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold"><i class="fas fa-pills text-danger me-2"></i> Pharmacy Command Center</h2>
+        <div class="btn-group shadow-sm">
+            <button class="btn btn-outline-primary rounded-start-pill"><i class="fas fa-plus"></i> Add Stock</button>
+            <button class="btn btn-primary rounded-end-pill"><i class="fas fa-print"></i> Inventory Report</button>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+                <h6 class="text-muted small text-uppercase fw-bold">Total Drugs</h6>
+                <h2 class="fw-bold mb-0">1,240</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-danger bg-opacity-10">
+                <h6 class="text-danger small text-uppercase fw-bold">Low Stock</h6>
+                <h2 class="fw-bold text-danger mb-0">08</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+                <h6 class="text-muted small text-uppercase fw-bold">Today's Sales</h6>
+                <h2 class="fw-bold mb-0">GH₵ 4,200</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-primary bg-opacity-10">
+                <h6 class="text-primary small text-uppercase fw-bold">Pending Scripts</h6>
+                <h2 class="fw-bold text-primary mb-0">15</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-clipboard-list text-primary me-2"></i>Live Dispensing Queue</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="bg-light small text-uppercase">
+                            <tr>
+                                <th class="ps-4">Patient</th>
+                                <th>Doctor</th>
+                                <th>Meds</th>
+                                <th class="text-end pe-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="fw-bold d-block">Kwame Mensah</span>
+                                    <small class="text-muted">ID: #PT-90210</small>
+                                </td>
+                                <td><small>Dr. Arhin</small></td>
+                                <td><span class="badge bg-info-subtle text-info border border-info-subtle">2 Items</span></td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-success btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#dispenseModal">
+                                        Dispense
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Inventory Watchlist</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="bg-light small text-uppercase">
+                            <tr>
+                                <th class="ps-3">Item</th>
+                                <th>Stock</th>
+                                <th class="text-end pe-3">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="ps-3">
+                                    <span class="fw-bold d-block">Paracetamol Syrup</span>
+                                    <small class="text-muted">Analgesic</small>
+                                </td>
+                                <td><span class="text-danger fw-bold">5 Units</span></td>
+                                <td class="text-end pe-3">
+                                    <button class="btn btn-sm btn-primary rounded-circle"><i class="fas fa-plus"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ps-3">
+                                    <span class="fw-bold d-block">Amoxicillin 500mg</span>
+                                    <small class="text-muted">Antibiotic</small>
+                                </td>
+                                <td><span class="text-success fw-bold">450 Units</span></td>
+                                <td class="text-end pe-3">
+                                    <button class="btn btn-sm btn-light border rounded-circle"><i class="fas fa-edit"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="dispenseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4">
+            <div class="modal-body text-center p-5">
+                <div class="text-success mb-3"><i class="fas fa-prescription-bottle-alt fa-4x"></i></div>
+                <h4 class="fw-bold">Process Dispensing</h4>
+                <p class="text-muted">You are marking Kwame Mensah's prescription as fulfilled. Ensure stock is deducted from the inventory.</p>
+                <div class="d-grid gap-2 mt-4">
+                    <button class="btn btn-success rounded-pill py-2 fw-bold">Confirm Dispense</button>
+                    <button class="btn btn-light rounded-pill py-2" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

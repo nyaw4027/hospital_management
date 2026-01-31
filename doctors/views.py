@@ -1,54 +1,57 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils import timezone
 from .models import Doctor
 from patients.models import Patient, Appointment, MedicalRecord
 from .forms import MedicalRecordForm
 
+# Helper to ensure only doctors can access these views
+def is_doctor(user):
+    return user.is_authenticated and user.role == 'doctor'
+
 @login_required
 def doctor_dashboard(request):
-    """Doctor dashboard with patient information"""
-    if request.user.role != 'doctor':
+    """Doctor dashboard with daily stats and appointments"""
+    if not is_doctor(request.user):
         messages.error(request, 'Access denied. This area is for doctors only.')
         return redirect('dashboard')
     
-    try:
-        doctor = Doctor.objects.get(user=request.user)
-    except Doctor.DoesNotExist:
-        # Create doctor profile if doesn't exist
-        doctor = Doctor.objects.create(
-            user=request.user,
-            doctor_id=f"DOC{request.user.id:05d}",
-            specialization='general',
-            license_number=f"LIC{request.user.id:05d}",
-            qualification='MBBS',
-            consultation_fee=500.00
-        )
+    # Use get_or_create to simplify logic and avoid explicit try/except blocks
+    doctor, created = Doctor.objects.get_or_create(
+        user=request.user,
+        defaults={
+            'doctor_id': f"DOC{request.user.id:05d}",
+            'specialization': 'general',
+            'license_number': f"LIC{request.user.id:05d}",
+            'qualification': 'MBBS',
+            'consultation_fee': 500.00
+        }
+    )
+
+    today = timezone.now().date()
     
-    # Get today's appointments
-    from datetime import date
-    today = date.today()
+    # Optimization: select_related reduces database hits by joining tables
     todays_appointments = Appointment.objects.filter(
         doctor=request.user,
         appointment_date=today
     ).select_related('patient__user')
     
-    # Get upcoming appointments
     upcoming_appointments = Appointment.objects.filter(
         doctor=request.user,
         appointment_date__gte=today,
         status='scheduled'
     ).select_related('patient__user').order_by('appointment_date', 'appointment_time')[:10]
     
-    # Get recent patients
+    # Recent patients: distinct() ensures patients aren't listed twice
     recent_patients = Patient.objects.filter(
         appointments__doctor=request.user
     ).distinct().order_by('-appointments__created_at')[:10]
     
-    # Statistics
+    # Stats
     total_appointments = Appointment.objects.filter(doctor=request.user).count()
     completed_appointments = Appointment.objects.filter(
-        doctor=request.user,
+        doctor=request.user, 
         status='completed'
     ).count()
     
@@ -64,9 +67,7 @@ def doctor_dashboard(request):
 
 @login_required
 def doctor_patients(request):
-    """View all patients"""
-    if request.user.role != 'doctor':
-        messages.error(request, 'Access denied.')
+    if not is_doctor(request.user):
         return redirect('dashboard')
     
     patients = Patient.objects.filter(
@@ -77,16 +78,17 @@ def doctor_patients(request):
 
 @login_required
 def patient_detail(request, patient_id):
-    """View detailed patient information"""
-    if request.user.role != 'doctor':
-        messages.error(request, 'Access denied.')
+    if not is_doctor(request.user):
         return redirect('dashboard')
     
     patient = get_object_or_404(Patient, id=patient_id)
+    
+    # Contextual data for this specific doctor and patient
     appointments = Appointment.objects.filter(
         patient=patient,
         doctor=request.user
     ).order_by('-appointment_date')
+    
     medical_records = MedicalRecord.objects.filter(
         patient=patient,
         doctor=request.user
@@ -101,15 +103,13 @@ def patient_detail(request, patient_id):
 
 @login_required
 def add_medical_record(request, patient_id):
-    """Add medical record for a patient"""
-    if request.user.role != 'doctor':
-        messages.error(request, 'Access denied.')
+    if not is_doctor(request.user):
         return redirect('dashboard')
     
     patient = get_object_or_404(Patient, id=patient_id)
     
     if request.method == 'POST':
-        form = MedicalRecordForm(request.POST)
+        form = MedicalRecordForm(request.POST, request.FILES) # Added request.FILES for prescriptions/scans
         if form.is_valid():
             medical_record = form.save(commit=False)
             medical_record.patient = patient
@@ -127,9 +127,7 @@ def add_medical_record(request, patient_id):
 
 @login_required
 def doctor_appointments(request):
-    """View all doctor appointments"""
-    if request.user.role != 'doctor':
-        messages.error(request, 'Access denied.')
+    if not is_doctor(request.user):
         return redirect('dashboard')
     
     appointments = Appointment.objects.filter(
@@ -140,9 +138,7 @@ def doctor_appointments(request):
 
 @login_required
 def update_appointment_status(request, appointment_id):
-    """Update appointment status"""
-    if request.user.role != 'doctor':
-        messages.error(request, 'Access denied.')
+    if not is_doctor(request.user):
         return redirect('dashboard')
     
     appointment = get_object_or_404(Appointment, id=appointment_id, doctor=request.user)
@@ -151,13 +147,14 @@ def update_appointment_status(request, appointment_id):
         status = request.POST.get('status')
         notes = request.POST.get('notes')
         
+        # Validate that the choice exists in the Model's STATUS_CHOICES
         if status in dict(Appointment.STATUS_CHOICES):
             appointment.status = status
             if notes:
                 appointment.notes = notes
             appointment.save()
-            messages.success(request, 'Appointment status updated successfully!')
+            messages.success(request, f'Appointment marked as {status}.')
         else:
-            messages.error(request, 'Invalid status.')
+            messages.error(request, 'Invalid status update attempt.')
     
     return redirect('doctor_appointments')

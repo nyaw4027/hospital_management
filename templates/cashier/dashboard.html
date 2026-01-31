@@ -1,156 +1,132 @@
 {% extends 'shared/base.html' %}
 
-{% block title %}Cashier Dashboard{% endblock %}
+{% block title %}Cashier Dashboard | HMS Core{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: #fff;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border: 1px solid #edf2f7;
+    }
+    .stat-value { font-size: 1.5rem; font-weight: 700; color: #2d3748; }
+    .stat-label { color: #718096; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .card { border-radius: 15px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .card-header { background-color: transparent; border-bottom: 1px solid #edf2f7; fw-bold; }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <h1 class="mb-4"><i class="fas fa-cash-register"></i> Cashier Dashboard</h1>
-
-    <!-- Statistics Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
-                    <i class="fas fa-file-invoice"></i>
-                </div>
-                <div class="stat-value">{{ total_bills }}</div>
-                <div class="stat-label">Total Bills</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-value">{{ pending_bills }}</div>
-                <div class="stat-label">Pending Bills</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-icon bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-money-bill-wave"></i>
-                </div>
-                <div class="stat-value">${{ today_payments|floatformat:2 }}</div>
-                <div class="stat-label">Today's Collections</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-icon bg-info bg-opacity-10 text-info">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="stat-value">${{ month_payments|floatformat:2 }}</div>
-                <div class="stat-label">This Month</div>
-            </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0"><i class="fas fa-cash-register text-success me-2"></i>Financial Overview</h1>
+        <div class="d-flex gap-2">
+            <a href="{% url 'create_bill' %}" class="btn btn-primary rounded-pill px-4">
+                <i class="fas fa-plus me-1"></i> New Invoice
+            </a>
+            <button class="btn btn-outline-success rounded-pill px-4">
+                <i class="fas fa-file-export me-1"></i> End of Day Report
+            </button>
         </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <i class="fas fa-bolt"></i> Quick Actions
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-label">Pending Invoices</div>
+                <div class="stat-value text-warning">{{ pending_bills|default:"0" }}</div>
+                <small class="text-muted">Awaiting Payment</small>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="d-flex gap-2">
-                <a href="{% url 'create_bill' %}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Create New Bill
-                </a>
-                <a href="{% url 'all_bills' %}" class="btn btn-info">
-                    <i class="fas fa-list"></i> View All Bills
-                </a>
-                <a href="{% url 'all_payments' %}" class="btn btn-success">
-                    <i class="fas fa-receipt"></i> View Payments
-                </a>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-label">Daily Collection</div>
+                <div class="stat-value text-success">GH₵ {{ today_payments|default:"0.00" }}</div>
+                <small class="text-muted">{% now "M d, Y" %}</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-label">Monthly Total</div>
+                <div class="stat-value">GH₵ {{ month_payments|default:"0.00" }}</div>
+                <small class="text-muted">Current Month</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-label">Unpaid Prescriptions</div>
+                <div class="stat-value text-danger">08</div>
+                <small class="text-muted">From Pharmacy Queue</small>
             </div>
         </div>
     </div>
 
     <div class="row g-4">
-        <!-- Recent Bills -->
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-file-invoice-dollar"></i> Recent Bills
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-bold"><i class="fas fa-user-clock text-primary me-2"></i>Awaiting Payment</span>
+                    <span class="badge bg-light text-dark">{{ recent_bills.count }} Active</span>
                 </div>
-                <div class="card-body">
-                    {% if recent_bills %}
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Bill #</th>
-                                        <th>Patient</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for bill in recent_bills %}
-                                    <tr>
-                                        <td>{{ bill.bill_number }}</td>
-                                        <td>{{ bill.patient.user.get_full_name }}</td>
-                                        <td>${{ bill.total_amount }}</td>
-                                        <td>
-                                            <span class="badge badge-{% if bill.status == 'paid' %}success{% elif bill.status == 'pending' %}warning{% else %}danger{% endif %}">
-                                                {{ bill.get_status_display }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <a href="{% url 'bill_detail' bill.id %}" class="btn btn-sm btn-info">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p class="text-muted text-center">No bills yet</p>
-                    {% endif %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light small text-uppercase">
+                            <tr>
+                                <th class="ps-4">Patient / Bill #</th>
+                                <th>Category</th>
+                                <th>Amount Due</th>
+                                <th class="text-end pe-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bill in recent_bills %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold">{{ bill.patient.user.get_full_name }}</div>
+                                    <small class="text-muted">#{{ bill.bill_number }}</small>
+                                </td>
+                                <td><span class="badge bg-info-subtle text-info border border-info-subtle">Consultation</span></td>
+                                <td class="fw-bold">GH₵ {{ bill.total_amount }}</td>
+                                <td class="text-end pe-4">
+                                    <a href="{% url 'bill_detail' bill.id %}" class="btn btn-sm btn-success rounded-pill px-3">
+                                        Collect Cash
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center py-5 text-muted">No pending bills found.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <!-- Recent Payments -->
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-credit-card"></i> Recent Payments
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header fw-bold">
+                    <i class="fas fa-history text-secondary me-2"></i>Recent Receipts
                 </div>
-                <div class="card-body">
-                    {% if recent_payments %}
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Reference</th>
-                                        <th>Amount</th>
-                                        <th>Method</th>
-                                        <th>Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for payment in recent_payments %}
-                                    <tr>
-                                        <td>{{ payment.payment_reference }}</td>
-                                        <td>${{ payment.amount }}</td>
-                                        <td>
-                                            <span class="badge badge-info">
-                                                {{ payment.get_payment_method_display }}
-                                            </span>
-                                        </td>
-                                        <td>{{ payment.transaction_date|date:"M d, Y" }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                <div class="list-group list-group-flush">
+                    {% for payment in recent_payments %}
+                    <div class="list-group-item py-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small">{{ payment.payment_reference }}</span>
+                            <span class="badge bg-success-subtle text-success small">Paid</span>
                         </div>
-                    {% else %}
-                        <p class="text-muted text-center">No payments yet</p>
-                    {% endif %}
+                        <div class="d-flex justify-content-between align-items-end">
+                            <div>
+                                <div class="text-dark fw-bold">GH₵ {{ payment.amount }}</div>
+                                <small class="text-muted">{{ payment.get_payment_method_display }} • {{ payment.transaction_date|date:"H:i A" }}</small>
+                            </div>
+                            <button class="btn btn-sm btn-light border rounded-circle"><i class="fas fa-print"></i></button>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="p-5 text-center text-muted">No transactions today.</div>
+                    {% endfor %}
                 </div>
             </div>
         </div>

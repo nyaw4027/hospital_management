@@ -1,8 +1,9 @@
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm
 from .models import User
 
 class UserRegistrationForm(forms.ModelForm):
-    """User registration form"""
+    """User registration form with matching password validation"""
     password = forms.CharField(
         label='Password',
         widget=forms.PasswordInput(attrs={
@@ -31,28 +32,32 @@ class UserRegistrationForm(forms.ModelForm):
         }
 
     def clean(self):
-        """Ensure password and password_confirm match"""
         cleaned_data = super().clean()
         password = cleaned_data.get('password')
         password_confirm = cleaned_data.get('password_confirm')
 
         if password and password_confirm and password != password_confirm:
-            raise forms.ValidationError("Passwords don't match")
-
+            self.add_error('password_confirm', "Passwords don't match")
         return cleaned_data
 
+    def save(self, commit=True):
+        """Ensure password hashing is handled correctly"""
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password"])
+        if commit:
+            user.save()
+        return user
 
-class UserLoginForm(forms.Form):
-    """User login form"""
-    username = forms.CharField(
-        widget=forms.TextInput(attrs={
+class UserLoginForm(AuthenticationForm):
+    """Refined Login form using Django's built-in Auth logic"""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Ensure placeholders and classes are applied to the built-in fields
+        self.fields['username'].widget.attrs.update({
             'class': 'form-control',
             'placeholder': 'Username'
         })
-    )
-    password = forms.CharField(
-        widget=forms.PasswordInput(attrs={
+        self.fields['password'].widget.attrs.update({
             'class': 'form-control',
             'placeholder': 'Password'
         })
-    )
