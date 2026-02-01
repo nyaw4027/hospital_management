@@ -9,4 +9,12 @@ urlpatterns = [
     path('verify-paystack/', views.verify_paystack_payment, name='verify_paystack_payment'),
     path('bills/', views.all_bills, name='all_bills'),
     path('payments/', views.all_payments, name='all_payments'),
+
+    path('report/daily/', views.daily_report, name='daily_report'),
+
+# Missing Receipt Path
+    path('payment/<int:payment_id>/receipt/', views.print_receipt, name='print_receipt'),
+    path('receipt/lab/<int:lab_id>/', views.print_lab_receipt, name='print_lab_receipt'),
+
+
 ]

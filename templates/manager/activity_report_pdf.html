@@ -3,12 +3,13 @@
 <head>
     <style>
         @page { size: a4 portrait; margin: 1cm; }
-        body { font-family: sans-serif; color: #333; }
-        .header { text-align: center; border-bottom: 2px solid #0d6efd; padding-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background-color: #f8f9fa; padding: 8px; border: 1px solid #dee2e6; text-align: left; }
-        td { padding: 8px; border: 1px solid #dee2e6; font-size: 12px; }
-        .timestamp { color: #666; font-size: 10px; }
+        body { font-family: Helvetica, Arial, sans-serif; color: #333; line-height: 1.4; }
+        .header { text-align: center; border-bottom: 2px solid #0d6efd; padding-bottom: 10px; margin-bottom: 20px; }
+        .header h1 { color: #0d6efd; margin-bottom: 5px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background-color: #f8f9fa; padding: 10px; border: 1px solid #dee2e6; text-align: left; font-size: 13px; }
+        td { padding: 8px; border: 1px solid #dee2e6; font-size: 11px; vertical-align: top; }
+        .timestamp { color: #666; font-size: 10px; white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -19,19 +20,23 @@
     <table>
         <thead>
             <tr>
-                <th>User</th>
-                <th>Action</th>
-                <th>Details</th>
-                <th>Date/Time</th>
+                <th style="width: 15%;">User</th>
+                <th style="width: 20%;">Action</th>
+                <th style="width: 45%;">Details</th>
+                <th style="width: 20%;">Date/Time</th>
             </tr>
         </thead>
         <tbody>
             {% for log in logs %}
             <tr>
-                <td>{{ log.user.username }}</td>
+                <td><strong>{{ log.user.username }}</strong></td>
                 <td>{{ log.action }}</td>
                 <td>{{ log.details }}</td>
-                <td class="timestamp">{{ log.timestamp }}</td>
+                <td class="timestamp">{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center;">No activity logs found.</td>
             </tr>
             {% endfor %}
         </tbody>

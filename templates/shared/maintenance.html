@@ -1,0 +1,13 @@
+{% extends 'shared/base.html' %}
+{% block content %}
+<div class="container vh-100 d-flex align-items-center justify-content-center text-center">
+    <div>
+        <i class="fas fa-tools fa-5x text-primary mb-4"></i>
+        <h1 class="fw-bold">Scheduled Maintenance</h1>
+        <p class="lead text-muted">We are currently updating our systems to serve you better.<br>
+        We expect to be back online in a few minutes.</p>
+        <hr class="my-4">
+        <p class="small text-secondary">If you are a staff member, please <a href="{% url 'account_login' %}">login here</a>.</p>
+    </div>
+</div>
+{% endblock %}

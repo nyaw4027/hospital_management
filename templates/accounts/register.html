@@ -5,9 +5,7 @@
 
 {% block extra_css %}
 <style>
-    body {
-        background-color: #f4f7f6;
-    }
+    body { background-color: #f4f7f6; }
 
     .register-container {
         min-height: 90vh;
@@ -23,7 +21,7 @@
         overflow: hidden;
     }
 
-    /* Left Side Branding */
+    /* Left Side Branding - Consistency with Login */
     .register-info-side {
         background: linear-gradient(rgba(13, 110, 253, 0.9), rgba(0, 33, 71, 0.9)), 
                     url('https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80');
@@ -36,36 +34,47 @@
         padding: 50px;
     }
 
-    /* Form Input Styling */
+    /* Form Input Styling - Matching your dashboard look */
     input[type="text"], input[type="password"], input[type="email"], select, input[type="tel"] {
         width: 100%;
         padding: 10px 15px;
         border: 1px solid #dee2e6;
-        border-radius: 8px;
-        transition: 0.3s;
-        background-color: #fcfcfc;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
     }
 
     input:focus, select:focus {
         border-color: #0d6efd;
         outline: none;
-        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
         background-color: #fff;
     }
 
     .btn-register {
         padding: 12px;
         font-weight: 600;
-        border-radius: 8px;
+        border-radius: 50px; /* Uniform pill style */
         transition: 0.3s;
     }
 
     .form-label {
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         font-weight: 700;
         text-transform: uppercase;
-        color: #495057;
+        color: #6c757d;
         margin-bottom: 5px;
+        letter-spacing: 0.5px;
+    }
+
+    .icon-box {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 </style>
 {% endblock %}
@@ -76,7 +85,7 @@
         <div class="col-lg-11 col-xl-10">
             <div class="card register-card shadow-lg">
                 <div class="row g-0">
-                    <div class="col-md-5 d-none d-md-flex register-info-side text-center text-md-start">
+                    <div class="col-md-5 d-none d-md-flex register-info-side">
                         <div class="mb-4">
                             <i class="fas fa-hospital-user fa-3x text-warning"></i>
                         </div>
@@ -85,19 +94,19 @@
                         
                         <div class="list-group list-group-flush bg-transparent">
                             <div class="d-flex align-items-center mb-4">
-                                <div class="bg-white bg-opacity-20 rounded-circle p-2 me-3">
+                                <div class="icon-box me-3">
                                     <i class="fas fa-lock fa-fw text-warning"></i>
                                 </div>
                                 <span>End-to-End Data Encryption</span>
                             </div>
                             <div class="d-flex align-items-center mb-4">
-                                <div class="bg-white bg-opacity-20 rounded-circle p-2 me-3">
+                                <div class="icon-box me-3">
                                     <i class="fas fa-id-card fa-fw text-warning"></i>
                                 </div>
                                 <span>Personalized Medical Profile</span>
                             </div>
                             <div class="d-flex align-items-center">
-                                <div class="bg-white bg-opacity-20 rounded-circle p-2 me-3">
+                                <div class="icon-box me-3">
                                     <i class="fas fa-bell fa-fw text-warning"></i>
                                 </div>
                                 <span>Instant Health Notifications</span>
@@ -166,7 +175,7 @@
                             </div>
 
                             {% if form.non_field_errors %}
-                                <div class="alert alert-danger py-2 small">{{ form.non_field_errors }}</div>
+                                <div class="alert alert-danger py-2 small border-0 shadow-sm">{{ form.non_field_errors }}</div>
                             {% endif %}
 
                             <button type="submit" class="btn btn-primary btn-register w-100 mb-3 shadow">
@@ -186,6 +195,10 @@
                         </form>
                     </div>
                 </div>
+            </div>
+            
+            <div class="text-center mt-4 text-muted small">
+                <i class="fas fa-shield-alt me-1 text-success"></i> Secure Registration | Clinical Standard Data Privacy
             </div>
         </div>
     </div>

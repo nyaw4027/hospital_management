@@ -1,0 +1,55 @@
+{% extends 'shared/base.html' %}
+
+{% block title %}Privacy Policy | Hospital Management System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9 shadow-sm p-5 bg-white rounded-4">
+            <h1 class="mb-4 fw-bold">Privacy Policy</h1>
+            <p class="text-muted small">Last Updated: January 31, 2026</p>
+            
+            <hr class="my-4">
+
+            <section class="mb-5">
+                <h3 class="h5 fw-bold">1. Data We Collect</h3>
+                <p>We collect information to provide better medical services to all our patients. This includes:</p>
+                <ul>
+                    <li><strong>Account Information:</strong> Name, email, and phone number when you register.</li>
+                    <li><strong>Medical Records:</strong> Diagnoses, prescriptions, and lab results managed by our doctors.</li>
+                    <li><strong>Activity Logs:</strong> System actions (logins, role changes) for security auditing.</li>
+                </ul>
+            </section>
+
+            <section class="mb-5">
+                <h3 class="h5 fw-bold">2. How We Use Your Data</h3>
+                <p>The information we collect is used to:</p>
+                <ul>
+                    <li>Facilitate healthcare delivery between doctors and patients.</li>
+                    <li>Generate billing and financial reports for the hospital management.</li>
+                    <li>Maintain security and verify staff credentials through our <strong>Audit Trail</strong>.</li>
+                </ul>
+            </section>
+
+            <section class="mb-5">
+                <h3 class="h5 fw-bold">3. Data Sharing & Security</h3>
+                <p>We do not share your medical information with third parties unless required by law. All data is encrypted and accessible only to authorized personnel based on their <strong>System Role</strong> (Doctor, Manager, Lab, etc.).</p>
+            </section>
+
+            <section class="mb-5">
+                <h3 class="h5 fw-bold">4. Your Rights</h3>
+                <p>As a user, you have the right to request a copy of your medical history or ask for account deactivation through the hospital administration.</p>
+            </section>
+
+            <div class="alert alert-info border-0">
+                <i class="fas fa-info-circle me-2"></i> 
+                Questions about this policy? Contact our administration at <strong>privacy@hospital.com</strong>.
+            </div>
+            
+            <div class="mt-5">
+                <a href="{% url 'home' %}" class="btn btn-outline-primary btn-sm">Return to Home</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

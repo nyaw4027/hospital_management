@@ -1,0 +1,81 @@
+{% extends 'shared/base.html' %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <h2>End of Day Report</h2>
+        <button onclick="window.print()" class="btn btn-primary">
+            <i class="fas fa-print"></i> Print Report
+        </button>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-5">
+            <div class="text-center mb-4">
+                <h4>HOSPITAL MANAGEMENT SYSTEM</h4>
+                <p class="text-muted">Daily Collection Summary - {{ today|date:"D, d M Y" }}</p>
+                <hr>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-6">
+                    <small class="text-muted d-block">Cashier Name:</small>
+                    <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+                </div>
+                <div class="col-6 text-end">
+                    <small class="text-muted d-block">Total Collection:</small>
+                    <h4 class="text-success">GH₵ {{ total_collected|floatformat:2 }}</h4>
+                </div>
+            </div>
+
+            <h5>Breakdown by Method</h5>
+            <table class="table table-bordered mb-4">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Payment Method</th>
+                        <th class="text-center">Transactions</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in method_summary %}
+                    <tr>
+                        <td>{{ item.payment_method|title }}</td>
+                        <td class="text-center">{{ item.count }}</td>
+                        <td class="text-end">GH₵ {{ item.total_amount|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <h5>Transaction Details</h5>
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Bill #</th>
+                        <th>Patient</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in payments %}
+                    <tr>
+                        <td>{{ p.transaction_date|time:"H:i" }}</td>
+                        <td>{{ p.bill.bill_number }}</td>
+                        <td>{{ p.bill.patient.user.get_full_name }}</td>
+                        <td class="text-end">{{ p.amount|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .no-print, nav, footer { display: none !important; }
+        .card { border: none !important; box-shadow: none !important; }
+    }
+</style>
+{% endblock %}

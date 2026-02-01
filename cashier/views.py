@@ -7,6 +7,12 @@ from patients.models import Patient
 from .forms import BillForm, PaymentForm
 import uuid
 import json
+from django.db.models import Sum
+from django.utils import timezone
+from datetime import date
+from cashier.models import Bill, Payment
+import os
+
 
 @login_required
 def cashier_dashboard(request):
@@ -15,13 +21,10 @@ def cashier_dashboard(request):
         messages.error(request, 'Access denied. This area is for cashier staff only.')
         return redirect('dashboard')
     
-    # Statistics
-    from django.db.models import Sum
-    from datetime import date, timedelta
-    
-    today = date.today()
+    today = timezone.now().date()
     this_month_start = today.replace(day=1)
     
+    # Now 'Bill' and 'Payment' will be recognized
     total_bills = Bill.objects.count()
     pending_bills = Bill.objects.filter(status='pending').count()
     paid_bills = Bill.objects.filter(status='paid').count()
@@ -36,8 +39,8 @@ def cashier_dashboard(request):
         status='success'
     ).aggregate(total=Sum('amount'))['total'] or 0
     
-    recent_bills = Bill.objects.all()[:10]
-    recent_payments = Payment.objects.filter(status='success')[:10]
+    recent_bills = Bill.objects.select_related('patient__user').all().order_by('-id')[:10]
+    recent_payments = Payment.objects.select_related('bill').filter(status='success').order_by('-id')[:10]
     
     context = {
         'total_bills': total_bills,
@@ -50,11 +53,35 @@ def cashier_dashboard(request):
     }
     return render(request, 'cashier/dashboard.html', context)
 
+@login_required
+def daily_report(request):
+    """End of Day Collection Report"""
+    if request.user.role not in ['cashier', 'manager']:
+        return redirect('dashboard')
 
+    today = timezone.now().date()
+    
+    # Get successful payments for today
+    payments = Payment.objects.filter(
+        transaction_date__date=today,
+        status='success'
+    ).select_related('bill__patient__user')
 
+    # Breakdown by method
+    method_summary = payments.values('payment_method').annotate(
+        total_amount=Sum('amount'),
+        count=Count('id')
+    )
 
+    total_collected = payments.aggregate(Sum('amount'))['amount__sum'] or 0
 
-
+    context = {
+        'today': today,
+        'payments': payments,
+        'method_summary': method_summary,
+        'total_collected': total_collected,
+    }
+    return render(request, 'cashier/daily_report.html', context)
 
 @login_required
 def create_bill(request):
@@ -212,10 +239,107 @@ def all_bills(request):
 
 @login_required
 def all_payments(request):
-    """View all payments"""
-    if request.user.role not in ['cashier', 'manager']:
-        messages.error(request, 'Access denied.')
-        return redirect('dashboard')
+    print(f"Searching in: {os.path.join(settings.BASE_DIR, 'templates')}")
+    # Fetch all payments, ordering by latest first
+    payments = Payment.objects.all().order_by('-transaction_date')
+    
+    # Ensure this string matches your folder name exactly
+    return render(request, 'cashier/all_payments.html', {'payments': payments})
     
     payments = Payment.objects.filter(status='success')
     return render(request, 'cashier/all_payments.html', {'payments': payments})
+
+@login_required
+def print_receipt(request, payment_id):
+    payment = get_object_or_404(Payment, id=payment_id)
+    return render(request, 'cashier/receipt_pdf.html', {'payment': payment})
+
+
+
+
+@login_required
+def daily_report(request):
+    if request.user.role not in ['cashier', 'manager']:
+        return redirect('dashboard')
+
+    today = timezone.now().date()
+    
+    # Get all successful payments processed by THIS user today
+    payments = Payment.objects.filter(
+        processed_by=request.user,
+        transaction_date__date=today,
+        status='success'
+    ).select_related('bill__patient__user')
+
+    # Summary by payment method (e.g., Cash: 500, MoMo: 200)
+    method_summary = payments.values('payment_method').annotate(
+        total_amount=Sum('amount'),
+        count=Count('id')
+    )
+
+    total_collected = payments.aggregate(Sum('amount'))['amount__sum'] or 0
+
+    context = {
+        'today': today,
+        'payments': payments,
+        'method_summary': method_summary,
+        'total_collected': total_collected,
+    }
+    return render(request, 'cashier/daily_report.html', context)
+
+
+@login_required
+def print_lab_receipt(request, lab_id):
+    lab = get_object_or_404(LabRequest, id=lab_id)
+    
+    # Check if payment was actually made
+    if lab.payment_status != 'paid':
+        messages.error(request, "Cannot print receipt for unpaid services.")
+        return redirect('cashier_dashboard')
+
+    template = get_template('cashier/receipt_pdf.html')
+    context = {
+        'lab': lab,
+        'cashier': request.user,
+        'receipt_no': f"RCP-{lab.id:05d}",
+        'date': timezone.now(),
+    }
+    
+    html = template.render(context)
+    result = io.BytesIO()
+    pdf = pisa.pisaDocument(io.BytesIO(html.encode("UTF-8")), result)
+    
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="Receipt_{lab.id}.pdf"'
+        return response
+    
+    return HttpResponse("Error generating receipt", status=500)
+
+
+@login_required
+def mark_as_paid(request, lab_id):
+    # Import INSIDE the function to avoid ModuleNotFoundError/Circular Imports
+    from labs.models import LabRequest 
+    
+    lab = get_object_or_404(LabRequest, id=lab_id)
+    if request.method == 'POST':
+        lab.payment_status = 'paid'
+        lab.save()
+        
+        # Create the Payment record
+        Payment.objects.create(
+            patient=lab.patient,
+            amount=getattr(lab, 'price', 0) or 0,
+            payment_method='cash',
+            status='success',
+            lab_request=lab,
+            processed_by=request.user,
+            payment_reference=f"LAB-{lab.id}-{timezone.now().strftime('%y%m%d%H%M')}"
+        )
+        
+        messages.success(request, f"Payment confirmed for {lab.test_name}")
+    return redirect('cashier_dashboard')
+
+    
+    

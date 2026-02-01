@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 # Use string references to avoid circular imports
 # 'patients.Patient' points to Patient model in patients app
@@ -56,7 +57,7 @@ class Bill(models.Model):
 
 
 class Payment(models.Model):
-    """Payment model"""
+    """Integrated Payment model for General Bills and Lab Requests"""
     PAYMENT_METHOD_CHOICES = (
         ('cash', 'Cash'),
         ('card', 'Card'),
@@ -72,11 +73,34 @@ class Payment(models.Model):
         ('refunded', 'Refunded'),
     )
     
+    # Links
+    patient = models.ForeignKey(
+        'patients.Patient', 
+        on_delete=models.CASCADE, 
+        related_name='payments',
+        null=True,   # Add this
+        blank=True   # Add this
+
+    )
+    
+    # A payment can belong to a General Bill OR a specific Lab Request
     bill = models.ForeignKey(
         'cashier.Bill',
         on_delete=models.CASCADE,
+        related_name='payments',
+        null=True, # Set to True to allow Lab-only payments
+        blank=True
+    )
+    
+    lab_request = models.ForeignKey(
+        'labs.LabRequest',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name='payments'
     )
+
+    # Transaction Details
     payment_reference = models.CharField(max_length=100, unique=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES)
@@ -84,9 +108,8 @@ class Payment(models.Model):
     paystack_reference = models.CharField(max_length=100, blank=True, null=True)
     transaction_date = models.DateTimeField(auto_now_add=True)
     
-    # Link to cashier (processed_by) with unique related_name
     processed_by = models.ForeignKey(
-        'accounts.User',
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='payments_processed'
@@ -95,7 +118,9 @@ class Payment(models.Model):
     notes = models.TextField(blank=True, null=True)
     
     def __str__(self):
-        return f"Payment {self.payment_reference} - {self.bill.bill_number}"
+        if self.lab_request:
+            return f"Lab Payment {self.payment_reference} - {self.lab_request.test_name}"
+        return f"Bill Payment {self.payment_reference} - {self.bill.bill_number if self.bill else 'N/A'}"
     
     class Meta:
         ordering = ['-transaction_date']

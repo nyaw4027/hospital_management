@@ -1,31 +1,23 @@
 from pathlib import Path
 import os
 
-
 # --------------------------------------------------
 # BASE DIRECTORY
 # --------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # --------------------------------------------------
 # SECURITY
 # --------------------------------------------------
 SECRET_KEY = 'django-insecure-change-this-in-production'
-
 DEBUG = True
-
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-
 
 # --------------------------------------------------
 # APPLICATIONS
 # --------------------------------------------------
 INSTALLED_APPS = [
-    # Local apps (custom user MUST be first)
-    'accounts',
-
-    # Django core apps
+    'accounts', # Custom user MUST be first
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,8 +38,8 @@ INSTALLED_APPS = [
     'doctors',
     'cashier',
     'manager',
+    'labs.apps.LabsConfig',
 ]
-
 
 # --------------------------------------------------
 # MIDDLEWARE
@@ -60,11 +52,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
-    # allauth middleware
     'allauth.account.middleware.AccountMiddleware',
+    'manager.middleware.MaintenanceModeMiddleware',
 ]
-
 
 # --------------------------------------------------
 # URLS & TEMPLATES
@@ -74,7 +64,7 @@ ROOT_URLCONF = 'hospital.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR, 'templates'],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -82,13 +72,13 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'manager.context_processors.hospital_settings',
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = 'hospital.wsgi.application'
-
 
 # --------------------------------------------------
 # DATABASE
@@ -100,9 +90,35 @@ DATABASES = {
     }
 }
 
-
 # --------------------------------------------------
-# PASSWORD VALIDATION
+# AUTHENTICATION / ALLAUTH (FIXED FOR ALLAUTH 65.0+)
+# --------------------------------------------------
+AUTH_USER_MODEL = 'accounts.User'
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'login'
+
+# settings.py
+
+# 1. Replaces ACCOUNT_AUTHENTICATION_METHOD
+ACCOUNT_LOGIN_METHODS = {'email'}
+
+# 2. Replaces ACCOUNT_EMAIL_REQUIRED and ACCOUNT_USERNAME_REQUIRED
+# Use 'email*' to make it mandatory, or just 'email' to make it optional.
+# 'username' can be omitted if you only want email login.
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+
+# Optional: If you still want to allow users to have a username 
+# but log in with email, you can add it to the list:
+# ACCOUNT_SIGNUP_FIELDS = ['username', 'email*', 'password1*', 'password2*']------------------------------------
+# PASSWORDS & INTERNATIONALIZATION
 # --------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -111,15 +127,10 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
-# --------------------------------------------------
-# INTERNATIONALIZATION
-# --------------------------------------------------
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
-
 
 # --------------------------------------------------
 # STATIC & MEDIA FILES
@@ -131,58 +142,13 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-
-# --------------------------------------------------
-# DEFAULT PRIMARY KEY
-# --------------------------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 # --------------------------------------------------
-# CUSTOM USER MODEL
-# --------------------------------------------------
-AUTH_USER_MODEL = 'accounts.User'
-
-
-# --------------------------------------------------
-# AUTHENTICATION / ALLAUTH
-# --------------------------------------------------
-SITE_ID = 1
-
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
-]
-
-LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/'
-
-
-# --------------------------------------------------
-# DJANGO-ALLAUTH (NEW SETTINGS – NOT DEPRECATED)
-# --------------------------------------------------
-ACCOUNT_LOGIN_METHODS = {'username'}
-
-ACCOUNT_SIGNUP_FIELDS = [
-    'email*',
-    'username*',
-    'password1*',
-    'password2*',
-]
-
-ACCOUNT_EMAIL_VERIFICATION = 'optional'
-
-
-# --------------------------------------------------
-# EMAIL (DEVELOPMENT)
+# EMAIL & THIRD PARTY
 # --------------------------------------------------
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-
-# --------------------------------------------------
-# SOCIAL AUTH (GOOGLE)
-# --------------------------------------------------
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': ['profile', 'email'],
@@ -190,9 +156,5 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-
-# --------------------------------------------------
-# PAYSTACK (PLACEHOLDERS)
-# --------------------------------------------------
 PAYSTACK_PUBLIC_KEY = 'pk_test_your_public_key_here'
 PAYSTACK_SECRET_KEY = 'sk_test_your_secret_key_here'

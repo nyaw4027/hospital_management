@@ -1,102 +1,164 @@
 {% extends 'shared/base.html' %}
 
-{% block title %}Bill Details{% endblock %}
+{% block title %}Bill #{{ bill.bill_number }}{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <a href="{% url 'cashier_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+        <div>
+            <button onclick="window.print()" class="btn btn-primary shadow-sm">
+                <i class="fas fa-print"></i> Print Official Invoice
+            </button>
+        </div>
+    </div>
+
     <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4><i class="fas fa-file-invoice"></i> Bill Details</h4>
-                    <span class="badge badge-{% if bill.status == 'paid' %}success{% elif bill.status == 'pending' %}warning{% else %}danger{% endif %} fs-6">
-                        {{ bill.get_status_display }}
-                    </span>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <p><strong>Bill Number:</strong> {{ bill.bill_number }}</p>
-                            <p><strong>Patient:</strong> {{ bill.patient.user.get_full_name }}</p>
-                            <p><strong>Patient ID:</strong> {{ bill.patient.patient_id }}</p>
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 invoice-container position-relative overflow-hidden">
+                
+                {% if bill.status == 'paid' %}
+                <div class="watermark">PAID</div>
+                {% endif %}
+
+                <div class="card-body p-5">
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <h3 class="text-primary mb-0 fw-bold">GHANA HEALTH SERVICE</h3>
+                            <p class="text-muted small">{{ bill.patient.hospital_branch|default:"Public Health Department" }}</p>
                         </div>
-                        <div class="col-md-6">
-                            <p><strong>Bill Type:</strong> {{ bill.get_bill_type_display }}</p>
-                            <p><strong>Date:</strong> {{ bill.created_at|date:"M d, Y" }}</p>
-                            <p><strong>Created By:</strong> {{ bill.created_by.get_full_name }}</p>
+                        <div class="col-6 text-end">
+                            <h4 class="mb-0">INVOICE</h4>
+                            <p class="text-muted">#{{ bill.bill_number|upper }}</p>
                         </div>
                     </div>
-                    
+
                     <hr>
-                    
-                    <div class="mb-3">
-                        <h6>Description</h6>
-                        <p>{{ bill.description }}</p>
+
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <h6 class="text-muted small text-uppercase fw-bold">Patient Details:</h6>
+                            <p class="mb-0"><strong>{{ bill.patient.user.get_full_name }}</strong></p>
+                            <p class="mb-0 text-muted">ID: {{ bill.patient.patient_id }}</p>
+                            <p class="mb-0 text-muted">Tel: {{ bill.patient.user.phone_number }}</p>
+                        </div>
+                        <div class="col-6 text-end">
+                            <h6 class="text-muted small text-uppercase fw-bold">Billing Details:</h6>
+                            <p class="mb-0"><strong>Date:</strong> {{ bill.created_at|date:"d M Y" }}</p>
+                            <p class="mb-0"><strong>Status:</strong> 
+                                <span class="badge {% if bill.status == 'paid' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                    {{ bill.get_status_display|upper }}
+                                </span>
+                            </p>
+                        </div>
                     </div>
-                    
-                    <hr>
-                    
-                    <div class="row">
-                        <div class="col-md-6 offset-md-6">
-                            <table class="table table-sm">
+
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered">
+                            <thead class="bg-light">
                                 <tr>
-                                    <td><strong>Amount:</strong></td>
-                                    <td class="text-end">${{ bill.amount }}</td>
+                                    <th>Description of Services</th>
+                                    <th class="text-end" style="width: 180px;">Amount (GH₵)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <strong>{{ bill.get_bill_type_display }}</strong><br>
+                                        <small class="text-muted">{{ bill.description }}</small>
+                                    </td>
+                                    <td class="text-end">{{ bill.amount|floatformat:2 }}</td>
+                                </tr>
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <td class="text-end"><strong>Subtotal:</strong></td>
+                                    <td class="text-end">GH₵ {{ bill.amount|floatformat:2 }}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Discount:</strong></td>
-                                    <td class="text-end">-${{ bill.discount }}</td>
+                                    <td class="text-end text-danger"><strong>Discount:</strong></td>
+                                    <td class="text-end text-danger">- GH₵ {{ bill.discount|floatformat:2 }}</td>
                                 </tr>
                                 <tr class="table-primary">
-                                    <td><strong>Total Amount:</strong></td>
-                                    <td class="text-end"><strong>${{ bill.total_amount }}</strong></td>
+                                    <td class="text-end"><h5>Grand Total:</h5></td>
+                                    <td class="text-end"><h5>GH₵ {{ bill.total_amount|floatformat:2 }}</h5></td>
                                 </tr>
-                            </table>
-                        </div>
+                            </tfoot>
+                        </table>
                     </div>
 
                     {% if bill.status != 'paid' %}
-                    <div class="text-end mt-4">
-                        <a href="{% url 'process_payment' bill.id %}" class="btn btn-success">
-                            <i class="fas fa-dollar-sign"></i> Process Payment
+                    <div class="text-end mt-4 no-print">
+                        <a href="{% url 'process_payment' bill.id %}" class="btn btn-outline-success me-2">
+                            <i class="fas fa-cash-register"></i> Manual Cash Payment
                         </a>
-                        <button type="button" class="btn btn-primary" onclick="payWithPaystack()">
-                            <i class="fas fa-credit-card"></i> Pay with Paystack
+                        <button type="button" class="btn btn-success px-4" onclick="payWithPaystack()">
+                            <i class="fas fa-credit-card"></i> Pay Online (Paystack)
                         </button>
                     </div>
                     {% endif %}
+
+                    <div class="mt-5 pt-3 border-top text-center">
+                        <p class="small text-muted mb-0">Issued by: {{ bill.created_by.get_full_name }}</p>
+                        <p class="small text-muted">This is an official document of the Ghana Health Service.</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-receipt"></i> Payment History
+        <div class="col-lg-4 no-print">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-bold">
+                    <i class="fas fa-history me-2 text-primary"></i> Payment History
                 </div>
                 <div class="card-body">
                     {% if payments %}
                         {% for payment in payments %}
-                        <div class="card mb-2 {% if payment.status == 'success' %}border-success{% endif %}">
-                            <div class="card-body p-2">
-                                <small>
-                                    <strong>{{ payment.payment_reference }}</strong><br>
-                                    Amount: ${{ payment.amount }}<br>
-                                    Method: {{ payment.get_payment_method_display }}<br>
-                                    Date: {{ payment.transaction_date|date:"M d, Y" }}<br>
-                                    Status: <span class="badge badge-{{ payment.status }}">{{ payment.get_status_display }}</span>
-                                </small>
-                            </div>
+                        <div class="border-start border-4 {% if payment.status == 'success' %}border-success{% else %}border-warning{% endif %} ps-3 mb-3">
+                            <p class="mb-0 fw-bold">GH₵ {{ payment.amount }}</p>
+                            <small class="text-muted d-block">{{ payment.transaction_date|date:"M d, Y" }}</small>
+                            <span class="badge badge-sm {% if payment.status == 'success' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ payment.get_status_display }}
+                            </span>
                         </div>
                         {% endfor %}
                     {% else %}
-                        <p class="text-muted text-center">No payments yet</p>
+                        <div class="text-center py-4">
+                            <i class="fas fa-receipt fa-3x text-light mb-3"></i>
+                            <p class="text-muted">No payments recorded yet.</p>
+                        </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 8rem;
+        font-weight: 900;
+        color: rgba(40, 167, 69, 0.1);
+        z-index: 0;
+        pointer-events: none;
+        user-select: none;
+        text-transform: uppercase;
+    }
+
+    @media print {
+        .no-print { display: none !important; }
+        body { background: white !important; padding: 0 !important; }
+        .container { max-width: 100% !important; width: 100% !important; margin: 0 !important; }
+        .card { box-shadow: none !important; border: none !important; }
+        .invoice-container { border: 1px solid #eee !important; }
+    }
+</style>
 
 {% if bill.status != 'paid' %}
 <script src="https://js.paystack.co/v1/inline.js"></script>
@@ -105,52 +167,30 @@ function payWithPaystack() {
     var handler = PaystackPop.setup({
         key: '{{ paystack_public_key }}',
         email: '{{ bill.patient.user.email }}',
-        amount: {{ bill.total_amount }} * 100, // Amount in kobo
-        currency: 'NGN',
-        ref: 'BILL{{ bill.id }}_' + Math.floor((Math.random() * 1000000000) + 1),
-        metadata: {
-            custom_fields: [
-                {
-                    display_name: "Bill Number",
-                    variable_name: "bill_number",
-                    value: "{{ bill.bill_number }}"
-                },
-                {
-                    display_name: "Patient Name",
-                    variable_name: "patient_name",
-                    value: "{{ bill.patient.user.get_full_name }}"
-                }
-            ]
-        },
+        amount: {{ bill.total_amount }} * 100, 
+        currency: 'GHS', // Changed to GHS for Ghana context
+        ref: 'BILL_{{ bill.bill_number }}_' + Math.floor((Math.random() * 1000000) + 1),
         callback: function(response) {
-            // Verify payment on server
             var form = document.createElement('form');
             form.method = 'POST';
             form.action = '{% url "verify_paystack_payment" %}';
             
-            var csrfToken = document.createElement('input');
-            csrfToken.type = 'hidden';
-            csrfToken.name = 'csrfmiddlewaretoken';
-            csrfToken.value = '{{ csrf_token }}';
-            form.appendChild(csrfToken);
-            
-            var referenceInput = document.createElement('input');
-            referenceInput.type = 'hidden';
-            referenceInput.name = 'reference';
-            referenceInput.value = response.reference;
-            form.appendChild(referenceInput);
-            
-            var billIdInput = document.createElement('input');
-            billIdInput.type = 'hidden';
-            billIdInput.name = 'bill_id';
-            billIdInput.value = '{{ bill.id }}';
-            form.appendChild(billIdInput);
+            var inputs = {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'reference': response.reference,
+                'bill_id': '{{ bill.id }}'
+            };
+
+            for (var key in inputs) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = inputs[key];
+                form.appendChild(input);
+            }
             
             document.body.appendChild(form);
             form.submit();
-        },
-        onClose: function() {
-            alert('Payment window closed');
         }
     });
     handler.openIframe();

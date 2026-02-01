@@ -6,6 +6,11 @@ from .models import Doctor
 from patients.models import Patient, Appointment, MedicalRecord
 from .forms import MedicalRecordForm
 
+import io
+from django.http import FileResponse
+from reportlab.pdfgen import canvas # You'll need to pip install reportlab
+from django.db.models import Q
+
 # Helper to ensure only doctors can access these views
 def is_doctor(user):
     return user.is_authenticated and user.role == 'doctor'
@@ -158,3 +163,100 @@ def update_appointment_status(request, appointment_id):
             messages.error(request, 'Invalid status update attempt.')
     
     return redirect('doctor_appointments')
+
+
+@login_required
+def consultation_session(request, appointment_id):
+    """
+    The 'Heart' of the Doctor's workflow.
+    Combines patient history, current appointment info, and the entry form.
+    """
+    if not is_doctor(request.user):
+        return redirect('dashboard')
+        
+    appointment = get_object_or_404(Appointment, id=appointment_id, doctor=request.user)
+    patient = appointment.patient
+    
+    # Get previous records to display side-by-side
+    history = MedicalRecord.objects.filter(patient=patient).order_by('-visit_date')[:5]
+    
+    if request.method == 'POST':
+        form = MedicalRecordForm(request.POST, request.FILES)
+        if form.is_valid():
+            record = form.save(commit=False)
+            record.patient = patient
+            record.doctor = request.user
+            record.save()
+            
+            # Auto-complete the appointment once a record is saved
+            appointment.status = 'completed'
+            appointment.save()
+            
+            messages.success(request, f"Consultation for {patient.user.get_full_name()} completed.")
+            return redirect('doctor_dashboard')
+    else:
+        form = MedicalRecordForm()
+
+    return render(request, 'doctors/consultation_session.html', {
+        'form': form,
+        'appointment': appointment,
+        'patient': patient,
+        'history': history
+    })
+
+@login_required
+def search_patients(request):
+    """Fast AJAX-ready search for patient lookup"""
+    query = request.GET.get('q', '')
+    if query:
+        patients = Patient.objects.filter(
+            Q(user__first_name__icontains=query) | 
+            Q(user__last_name__icontains=query) |
+            Q(patient_id__icontains=query)
+        ).distinct()
+    else:
+        patients = Patient.objects.none()
+        
+    return render(request, 'doctors/patient_search_results.html', {'patients': patients})
+
+@login_required
+def generate_prescription_pdf(request, record_id):
+    """Create a professional printable PDF prescription"""
+    record = get_object_or_404(MedicalRecord, id=record_id, doctor=request.user)
+    
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer)
+    
+    # PDF Header
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(100, 800, "OFFICIAL MEDICAL PRESCRIPTION")
+    p.setFont("Helvetica", 12)
+    p.drawString(100, 780, f"Doctor: Dr. {request.user.get_full_name()}")
+    p.drawString(100, 765, f"Date: {record.visit_date}")
+    
+    p.line(100, 750, 500, 750)
+    
+    # Patient Info
+    p.drawString(100, 730, f"Patient: {record.patient.user.get_full_name()}")
+    p.drawString(100, 715, f"Patient ID: {record.patient.patient_id}")
+    
+    # Prescription Body
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(100, 680, "Rx / Prescription:")
+    p.setFont("Helvetica", 12)
+    
+    # Assuming your MedicalRecord model has a 'prescription' text field
+    text_object = p.beginText(100, 660)
+    text_object.textLines(record.prescription if record.prescription else "No medication prescribed.")
+    p.drawText(text_object)
+    
+    # Footer/Signature line
+    p.line(100, 200, 300, 200)
+    p.drawString(100, 185, "Doctor's Signature")
+    
+    p.showPage()
+    p.save()
+    
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename=f'prescription_{record.id}.pdf')
+

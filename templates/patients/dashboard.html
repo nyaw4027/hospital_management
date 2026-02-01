@@ -1,75 +1,153 @@
 {% extends 'shared/base.html' %}
 
-{% block title %}Patient Dashboard - Hospital Management System{% endblock %}
+{% block title %}Patient Dashboard | HMS{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <h2 class="mb-4">Welcome, {{ request.user.first_name }}!</h2>
-    <p class="text-muted">Here’s a quick overview of your account and appointments.</p>
+<div class="container py-4">
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">Welcome back, {{ request.user.first_name|default:request.user.username }}!</h2>
+        <p class="text-muted">Monitor your health status, appointments, and lab results here.</p>
+    </div>
 
-    <!-- Dashboard Cards -->
-    <div class="row g-4 mt-4">
+    <div class="row g-4 mb-5">
         <div class="col-md-4">
-            <div class="card text-center shadow-sm">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-3 h-100">
                 <div class="card-body">
-                    <div class="stat-icon bg-primary bg-opacity-10 text-primary mx-auto mb-3">
-                        <i class="fas fa-calendar-check fa-2x"></i>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 50%;">
+                        <i class="fas fa-calendar-check fa-lg"></i>
                     </div>
-                    <h5>Upcoming Appointments</h5>
-                    <p class="text-muted">{{ upcoming_appointments_count|default:"0" }}</p>
+                    <h6 class="text-uppercase small fw-bold text-muted">Upcoming Visits</h6>
+                    <h3 class="fw-bold mb-0">{{ upcoming_appointments_count|default:"0" }}</h3>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card text-center shadow-sm">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-3 h-100">
                 <div class="card-body">
-                    <div class="stat-icon bg-success bg-opacity-10 text-success mx-auto mb-3">
-                        <i class="fas fa-file-medical fa-2x"></i>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 50%;">
+                        <i class="fas fa-file-medical fa-lg"></i>
                     </div>
-                    <h5>Medical Records</h5>
-                    <p class="text-muted">{{ medical_records_count|default:"0" }}</p>
+                    <h6 class="text-uppercase small fw-bold text-muted">Total Lab Records</h6>
+                    <h3 class="fw-bold mb-0">{{ medical_records_count|default:"0" }}</h3>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card text-center shadow-sm">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-3 h-100">
                 <div class="card-body">
-                    <div class="stat-icon bg-warning bg-opacity-10 text-warning mx-auto mb-3">
-                        <i class="fas fa-credit-card fa-2x"></i>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 50%;">
+                        <i class="fas fa-wallet fa-lg"></i>
                     </div>
-                    <h5>Pending Payments</h5>
-                    <p class="text-muted">{{ pending_payments|default:"0" }}</p>
+                    <h6 class="text-uppercase small fw-bold text-muted">Pending Bills</h6>
+                    <h3 class="fw-bold mb-0">{{ pending_payments|default:"0" }}</h3>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Appointments Table -->
-    <div class="row mt-5">
-        <div class="col-md-12">
-            <h4>Recent Appointments</h4>
-            {% if recent_appointments %}
-                <table class="table table-striped mt-3">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Doctor</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for appointment in recent_appointments %}
+    <div class="row g-4">
+        <div class="col-lg-8">
+            
+            <h4 class="fw-bold mb-3">Available Lab Reports</h4>
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="bg-light small text-uppercase">
                             <tr>
-                                <td>{{ appointment.date|date:"M d, Y H:i" }}</td>
-                                <td>{{ appointment.doctor.get_full_name }}</td>
-                                <td>{{ appointment.status }}</td>
+                                <th class="ps-4">Test Name</th>
+                                <th>Date</th>
+                                <th class="text-end pe-4">Action</th>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p class="text-muted mt-3">You have no recent appointments.</p>
-            {% endif %}
+                        </thead>
+                        <tbody>
+                            {% for result in recent_lab_results %}
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="fw-bold d-block text-primary">{{ result.test_name }}</span>
+                                    <span class="badge bg-success-subtle text-success small">Ready</span>
+                                </td>
+                                <td>{{ result.updated_at|date:"M d, Y" }}</td>
+                                <td class="text-end pe-4">
+                                    {% if result.attachment %}
+                                    <a href="{% url 'download_lab_pdf' result.id %}" class="btn btn-sm btn-primary rounded-pill px-3">
+    <i class="fas fa-file-pdf me-1"></i> Download Report
+</a>
+                                        <i class="fas fa-download me-1"></i> PDF
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted small italic">Digital copy pending</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted small">No ready reports found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <h4 class="fw-bold mb-3">Recent Appointments</h4>
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="bg-light small text-uppercase">
+                            <tr>
+                                <th class="ps-4">Doctor</th>
+                                <th>Date</th>
+                                <th class="text-end pe-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in recent_appointments %}
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="fw-bold">Dr. {{ appointment.doctor.get_full_name|default:appointment.doctor.username }}</span>
+                                </td>
+                                <td>{{ appointment.date|date:"M d, Y" }} <small class="text-muted">{{ appointment.date|time:"H:i" }}</small></td>
+                                <td class="text-end pe-4">
+                                    <span class="badge rounded-pill {% if appointment.status == 'completed' %}bg-success-subtle text-success{% else %}bg-primary-subtle text-primary{% endif %}">
+                                        {{ appointment.status|title }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted small">No recent appointments.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 bg-primary text-white shadow-sm rounded-4 p-4 mb-4">
+                <h5 class="fw-bold"><i class="fas fa-lightbulb me-2 text-warning"></i>Health Tip</h5>
+                <p class="small opacity-75">Keep your results safe. Most lab reports are needed for follow-up visits with your specialist.</p>
+                <hr class="opacity-25">
+                <p class="mb-0 small"><i class="fas fa-phone-alt me-2"></i>Help: +233 123 456 789</p>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h6 class="fw-bold mb-3 text-uppercase small text-muted">Tests in Progress</h6>
+                {% for test in processing_tests %}
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-spinner fa-spin text-info"></i>
+                    </div>
+                    <div class="ms-3">
+                        <p class="mb-0 fw-bold small">{{ test.test_name }}</p>
+                        <small class="text-muted">Awaiting analysis...</small>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted small mb-0">No active tests in the lab.</p>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>

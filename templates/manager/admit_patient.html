@@ -1,0 +1,57 @@
+{% extends 'shared/base.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <h3 class="fw-bold mb-4"><i class="fas fa-hospital-user text-primary me-2"></i>New Admission</h3>
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row g-4">
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Select Patient</label>
+                                <select name="patient" class="form-select rounded-3 shadow-sm" required>
+                                    <option value="">Choose a patient...</option>
+                                    {% for p in patients %}
+                                        <option value="{{ p.id }}">{{ p.name }} (ID: {{ p.patient_id }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Assigned Doctor</label>
+                                <select name="doctor" class="form-select rounded-3 shadow-sm" required>
+                                    {% for d in doctors %}
+                                        <option value="{{ d.id }}">Dr. {{ d.user.get_full_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Available Bed</label>
+                                <select name="bed" class="form-select rounded-3 shadow-sm" required>
+                                    {% for b in available_beds %}
+                                        <option value="{{ b.id }}">{{ b.ward.name }} - Bed {{ b.bed_number }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Admission Reason / Initial Diagnosis</label>
+                                <textarea name="reason" class="form-control rounded-3" rows="3" placeholder="Symptoms, emergency notes, etc." required></textarea>
+                            </div>
+
+                            <div class="col-md-12 pt-3">
+                                <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow">
+                                    Complete Admission
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

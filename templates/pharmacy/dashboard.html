@@ -5,80 +5,134 @@
 {% block content %}
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold"><i class="fas fa-pills text-danger me-2"></i> Pharmacy Command Center</h2>
-        <div class="btn-group shadow-sm">
-            <button class="btn btn-outline-primary rounded-start-pill"><i class="fas fa-plus"></i> Add Stock</button>
-            <button class="btn btn-primary rounded-end-pill"><i class="fas fa-print"></i> Inventory Report</button>
+        <div>
+            <h2 class="fw-bold mb-0">
+                <i class="fas fa-pills text-danger me-2"></i>Pharmacy Command Center
+            </h2>
+            <p class="text-muted small">Real-time inventory and prescription management</p>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} py-1 px-3 mb-0 small shadow-sm">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            <span class="badge bg-primary rounded-pill px-3 py-2">
+                <i class="fas fa-sync-alt fa-spin me-2"></i>Live Updates Active
+            </span>
+            <div class="btn-group shadow-sm">
+                <button class="btn btn-outline-primary rounded-start-pill" data-bs-toggle="modal" data-bs-target="#addStockModal">
+                    <i class="fas fa-plus me-1"></i> Add Stock
+                </button>
+                <button class="btn btn-primary rounded-end-pill">
+                    <i class="fas fa-print me-1"></i> Inventory Report
+                </button>
+            </div>
         </div>
     </div>
 
     <div class="row g-4 mb-5">
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white text-center text-md-start">
                 <h6 class="text-muted small text-uppercase fw-bold">Total Drugs</h6>
-                <h2 class="fw-bold mb-0">1,240</h2>
+                <h2 class="fw-bold mb-0">{{ total_drugs|default:"0" }}</h2>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm p-4 rounded-4 bg-danger bg-opacity-10">
-                <h6 class="text-danger small text-uppercase fw-bold">Low Stock</h6>
-                <h2 class="fw-bold text-danger mb-0">08</h2>
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-danger bg-opacity-10 text-danger text-center text-md-start">
+                <h6 class="small text-uppercase fw-bold text-danger">Low Stock Alerts</h6>
+                <h2 class="fw-bold mb-0">{{ low_stock|default:"0" }}</h2>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white text-center text-md-start">
                 <h6 class="text-muted small text-uppercase fw-bold">Today's Sales</h6>
-                <h2 class="fw-bold mb-0">GH₵ 4,200</h2>
+                <h2 class="fw-bold mb-0">GH₵ {{ today_sales|default:"0.00" }}</h2>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm p-4 rounded-4 bg-primary bg-opacity-10">
-                <h6 class="text-primary small text-uppercase fw-bold">Pending Scripts</h6>
-                <h2 class="fw-bold text-primary mb-0">15</h2>
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-primary bg-opacity-10 text-primary text-center text-md-start">
+                <h6 class="small text-uppercase fw-bold text-primary">Pending Scripts</h6>
+                <h2 class="fw-bold mb-0">{{ pending_count|default:"0" }}</h2>
             </div>
         </div>
     </div>
 
     <div class="row g-4">
-        <div class="col-lg-7">
+        <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4 h-100">
-                <div class="card-header bg-white py-3 border-0">
-                    <h5 class="fw-bold mb-0"><i class="fas fa-clipboard-list text-primary me-2"></i>Live Dispensing Queue</h5>
+                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-clipboard-list text-primary me-2"></i>Incoming Prescriptions</h5>
+                    <span class="badge bg-light text-dark border">{{ prescriptions|length }} Active</span>
                 </div>
                 <div class="table-responsive">
-                    <table class="table align-middle mb-0">
+                    <table class="table table-hover align-middle mb-0">
                         <thead class="bg-light small text-uppercase">
                             <tr>
-                                <th class="ps-4">Patient</th>
-                                <th>Doctor</th>
-                                <th>Meds</th>
+                                <th class="ps-4">Patient & ID</th>
+                                <th>Time Issued</th>
+                                <th>Prescription Details</th>
                                 <th class="text-end pe-4">Action</th>
                             </tr>
                         </thead>
                         <tbody>
+                            {% for record in prescriptions %}
                             <tr>
                                 <td class="ps-4">
-                                    <span class="fw-bold d-block">Kwame Mensah</span>
-                                    <small class="text-muted">ID: #PT-90210</small>
+                                    <span class="fw-bold d-block text-dark">{{ record.patient.get_full_name|default:record.patient.username }}</span>
+                                    <small class="text-muted">ID: #{{ record.patient.id }}</small>
                                 </td>
-                                <td><small>Dr. Arhin</small></td>
-                                <td><span class="badge bg-info-subtle text-info border border-info-subtle">2 Items</span></td>
+                                <td>
+                                    <div class="small fw-bold">{{ record.visit_date|time:"g:i A" }}</div>
+                                    <div class="text-muted small" style="font-size: 0.75rem;">{{ record.visit_date|date:"M d" }}</div>
+                                </td>
+                                <td style="max-width: 250px;">
+                                    <div class="p-2 bg-light rounded border-start border-3 border-primary small text-truncate">
+                                        {{ record.prescription }}
+                                    </div>
+                                </td>
                                 <td class="text-end pe-4">
-                                    <button class="btn btn-success btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#dispenseModal">
+                                    <button class="btn btn-success btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#dispenseModal{{ record.id }}">
                                         Dispense
                                     </button>
                                 </td>
                             </tr>
+
+                            <div class="modal fade" id="dispenseModal{{ record.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-0 rounded-4 shadow">
+                                        <div class="modal-body text-center p-5">
+                                            <div class="text-success mb-3"><i class="fas fa-prescription-bottle-alt fa-4x"></i></div>
+                                            <h4 class="fw-bold">Process Dispensing</h4>
+                                            <p class="text-muted">Confirming this will mark the prescription for <strong>{{ record.patient.get_full_name|default:record.patient.username }}</strong> as fulfilled.</p>
+                                            <div class="p-3 bg-light rounded text-start mb-4 small">
+                                                <strong>Doctor's Orders:</strong><br>
+                                                {{ record.prescription|linebreaksbr }}
+                                            </div>
+                                            <form method="POST" action="{% url 'update_prescription_status' record.id %}">
+                                                {% csrf_token %}
+                                                <div class="d-grid gap-2">
+                                                    <button type="submit" class="btn btn-success rounded-pill py-2 fw-bold shadow">Confirm & Mark Completed</button>
+                                                    <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Cancel</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center py-5 text-muted">The queue is empty.</td></tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-5">
+        <div class="col-lg-4">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-header bg-white py-3 border-0">
-                    <h5 class="fw-bold mb-0"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Inventory Watchlist</h5>
+                    <h5 class="fw-bold mb-0"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Stock Watchlist</h5>
                 </div>
                 <div class="table-responsive">
                     <table class="table align-middle mb-0">
@@ -90,47 +144,90 @@
                             </tr>
                         </thead>
                         <tbody>
+                            {% for item in inventory %}
                             <tr>
                                 <td class="ps-3">
-                                    <span class="fw-bold d-block">Paracetamol Syrup</span>
-                                    <small class="text-muted">Analgesic</small>
+                                    <span class="fw-bold d-block">{{ item.name }}</span>
+                                    <small class="text-muted">{{ item.category }}</small>
                                 </td>
-                                <td><span class="text-danger fw-bold">5 Units</span></td>
+                                <td>
+                                    {% if item.is_low_stock %}
+                                        <span class="badge bg-danger">Low: {{ item.quantity }}</span>
+                                    {% else %}
+                                        <span class="badge bg-success">{{ item.quantity }}</span>
+                                    {% endif %}
+                                </td>
                                 <td class="text-end pe-3">
-                                    <button class="btn btn-sm btn-primary rounded-circle"><i class="fas fa-plus"></i></button>
+                                    <button class="btn btn-sm btn-light border rounded-circle shadow-sm">
+                                        <i class="fas fa-edit text-primary"></i>
+                                    </button>
                                 </td>
                             </tr>
-                            <tr>
-                                <td class="ps-3">
-                                    <span class="fw-bold d-block">Amoxicillin 500mg</span>
-                                    <small class="text-muted">Antibiotic</small>
-                                </td>
-                                <td><span class="text-success fw-bold">450 Units</span></td>
-                                <td class="text-end pe-3">
-                                    <button class="btn btn-sm btn-light border rounded-circle"><i class="fas fa-edit"></i></button>
-                                </td>
-                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center py-4 text-muted small">No medicines found.</td></tr>
+                            {% endfor %}
                         </tbody>
                     </table>
+                </div>
+                <div class="card-footer bg-white border-0 text-center py-3">
+                    <a href="/admin/accounts/medicine/" class="small text-decoration-none">Manage Full Inventory →</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="dispenseModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="addStockModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 rounded-4">
-            <div class="modal-body text-center p-5">
-                <div class="text-success mb-3"><i class="fas fa-prescription-bottle-alt fa-4x"></i></div>
-                <h4 class="fw-bold">Process Dispensing</h4>
-                <p class="text-muted">You are marking Kwame Mensah's prescription as fulfilled. Ensure stock is deducted from the inventory.</p>
-                <div class="d-grid gap-2 mt-4">
-                    <button class="btn btn-success rounded-pill py-2 fw-bold">Confirm Dispense</button>
-                    <button class="btn btn-light rounded-pill py-2" data-bs-dismiss="modal">Cancel</button>
+        <div class="modal-content border-0 rounded-4 shadow">
+            <form method="POST" action="{% url 'add_medicine_stock' %}">
+                {% csrf_token %}
+                <div class="modal-header border-0 pt-4 px-4">
+                    <h5 class="fw-bold"><i class="fas fa-plus-circle text-primary me-2"></i>Register New Stock</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-            </div>
+                <div class="modal-body px-4">
+                    <div class="mb-3">
+                        <label class="small fw-bold">Medicine Name</label>
+                        <input type="text" name="name" class="form-control rounded-pill" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="small fw-bold">Category</label>
+                            <input type="text" name="category" class="form-control rounded-pill" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="small fw-bold">Price (GHS)</label>
+                            <input type="number" step="0.01" name="price" class="form-control rounded-pill" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="small fw-bold">Initial Quantity</label>
+                            <input type="number" name="quantity" class="form-control rounded-pill" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="small fw-bold">Reorder Level</label>
+                            <input type="number" name="reorder_level" class="form-control rounded-pill" value="10">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pb-4 px-4">
+                    <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold">Save to Inventory</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    setTimeout(function(){
+        const isModalOpen = document.querySelector('.modal.show');
+        if (!isModalOpen) {
+            window.location.reload();
+        }
+    }, 30000); 
+</script>
 {% endblock %}

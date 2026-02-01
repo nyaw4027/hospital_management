@@ -48,6 +48,13 @@
         font-weight: 600;
         padding: 1.25rem;
     }
+    .avatar-sm {
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 </style>
 {% endblock %}
 
@@ -58,14 +65,14 @@
             <h1 class="h3 mb-1"><i class="fas fa-user-md text-primary me-2"></i>Welcome, Dr. {{ user.last_name }}</h1>
             <p class="text-muted small mb-0">Today is {% now "l, jS F Y" %}</p>
         </div>
-        <div class="d-flex gap-2">
-            <a href="{% url 'create_prescription' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
-                <i class="fas fa-plus me-2"></i>New Prescription
-            </a>
-            <div class="text-end ms-3">
-                <span class="badge bg-primary rounded-pill px-3">{{ user.doctor_profile.get_specialization_display }}</span>
-                <div class="mt-1 small text-muted">License: {{ user.doctor_profile.license_number }}</div>
+        <div class="d-flex gap-2 align-items-center">
+            <div class="text-end me-3 d-none d-md-block">
+                <span class="badge bg-primary rounded-pill px-3">{{ doctor.get_specialization_display|default:"General Practice" }}</span>
+                <div class="mt-1 small text-muted">License: {{ doctor.license_number }}</div>
             </div>
+            <a href="{% url 'doctor_patients' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                <i class="fas fa-prescription me-2"></i>Patients List
+            </a>
         </div>
     </div>
 
@@ -94,7 +101,7 @@
                     <i class="fas fa-clock"></i>
                 </div>
                 <div class="stat-value">{{ todays_appointments.count|default:"0" }}</div>
-                <div class="stat-label">Today's Schedule</div>
+                <div class="stat-label">Today's Queue</div>
             </div>
         </div>
         <div class="col-md-3">
@@ -103,17 +110,17 @@
                     <i class="fas fa-users"></i>
                 </div>
                 <div class="stat-value">{{ recent_patients.count|default:"0" }}</div>
-                <div class="stat-label">Recent Patients</div>
+                <div class="stat-label">Your Patients</div>
             </div>
         </div>
     </div>
 
     <div class="row g-4">
-        <div class="col-lg-7">
+        <div class="col-lg-8">
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-calendar-day text-primary me-2"></i>Today's Appointments</span>
-                    <button class="btn btn-sm btn-outline-primary rounded-pill">View Full Schedule</button>
+                    <span><i class="fas fa-calendar-day text-primary me-2"></i>Active Consultation Queue</span>
+                    <a href="{% url 'doctor_appointments' %}" class="btn btn-sm btn-outline-primary rounded-pill">Full Schedule</a>
                 </div>
                 <div class="card-body">
                     {% if todays_appointments %}
@@ -130,8 +137,11 @@
                                 <tbody>
                                     {% for appointment in todays_appointments %}
                                     <tr>
-                                        <td class="fw-bold">{{ appointment.appointment_time|time:"g:i A" }}</td>
-                                        <td>{{ appointment.patient.user.get_full_name }}</td>
+                                        <td class="fw-bold text-primary">{{ appointment.appointment_time|time:"g:i A" }}</td>
+                                        <td>
+                                            <div class="fw-bold">{{ appointment.patient.user.get_full_name }}</div>
+                                            <div class="small text-muted">ID: {{ appointment.patient.patient_id }}</div>
+                                        </td>
                                         <td>
                                             <span class="badge rounded-pill 
                                                 {% if appointment.status == 'completed' %}bg-success
@@ -141,9 +151,15 @@
                                             </span>
                                         </td>
                                         <td class="text-end">
-                                            <a href="#" class="btn btn-sm btn-light border rounded-pill px-3">
-                                                <i class="fas fa-file-medical me-1"></i> Open File
+                                            {% if appointment.status == 'scheduled' %}
+                                            <a href="{% url 'consultation_session' appointment.id %}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                                                <i class="fas fa-stethoscope me-1"></i> Start
                                             </a>
+                                            {% else %}
+                                            <a href="{% url 'patient_detail' appointment.patient.id %}" class="btn btn-sm btn-light border rounded-pill px-3">
+                                                <i class="fas fa-eye me-1"></i> View
+                                            </a>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -160,35 +176,42 @@
             </div>
         </div>
 
-        <div class="col-lg-5">
+        <div class="col-lg-4">
             <div class="card h-100">
                 <div class="card-header">
-                    <span><i class="fas fa-user-injured text-primary me-2"></i>Recent Patient Interactions</span>
+                    <span><i class="fas fa-user-injured text-primary me-2"></i>Quick Access Patients</span>
                 </div>
                 <div class="list-group list-group-flush">
                     {% for patient in recent_patients %}
-                    <a href="#" class="list-group-item list-group-item-action py-3 border-0">
+                    <a href="{% url 'patient_detail' patient.id %}" class="list-group-item list-group-item-action py-3 border-0">
                         <div class="d-flex w-100 justify-content-between align-items-center">
                             <div class="d-flex align-items-center">
-                                <div class="avatar-sm bg-light rounded-circle p-2 me-3">
-                                    <i class="fas fa-user text-secondary"></i>
+                                <div class="avatar-sm bg-light rounded-circle me-3">
+                                    <i class="fas fa-user-circle text-secondary"></i>
                                 </div>
                                 <div>
                                     <h6 class="mb-0 fw-bold">{{ patient.user.get_full_name }}</h6>
-                                    <small class="text-muted">ID: {{ patient.patient_id }}</small>
+                                    <small class="text-muted">Last Visit: {{ patient.appointments.last.appointment_date|date:"M d" }}</small>
                                 </div>
                             </div>
-                            <i class="fas fa-chevron-right text-light"></i>
+                            <i class="fas fa-chevron-right text-muted small"></i>
                         </div>
                     </a>
                     {% empty %}
                     <div class="p-5 text-center">
-                        <p class="text-muted small">No recent history found.</p>
+                        <p class="text-muted small">No patient records found.</p>
                     </div>
                     {% endfor %}
                 </div>
                 <div class="card-footer bg-white border-0 text-center py-3">
-                    <button class="btn btn-link btn-sm text-decoration-none">Search All Patient Records</button>
+                    <form action="{% url 'search_patients' %}" method="GET" class="px-3">
+                        <div class="input-group input-group-sm">
+                            <input type="text" name="q" class="form-control rounded-start-pill" placeholder="Search Patient ID...">
+                            <button class="btn btn-primary rounded-end-pill" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

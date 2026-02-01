@@ -1,22 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="{{ hospital_settings.night_mode|yesno:'dark,light' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}HMS Core{% endblock %}</title>
     {% load static %}
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         :root {
             --medical-blue: #0a2357;
             --medical-info: #00d4ff;
             --medical-green: #198754;
+            --bg-light: #f8f9fa;
         }
 
-        body { display: flex; flex-direction: column; min-height: 100vh; font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+        /* Night Mode Overrides */
+        [data-theme='dark'] {
+            background-color: #121212 !important;
+            color: #e0e0e0 !important;
+        }
+        [data-theme='dark'] body { background-color: #121212; color: #e0e0e0; }
+        [data-theme='dark'] .card { background-color: #1e1e1e; color: white; border: 1px solid #333; }
+        [data-theme='dark'] .form-control, [data-theme='dark'] .form-select { background-color: #2d2d2d; color: white; border-color: #444; }
+        [data-theme='dark'] .list-group-item { background-color: #1e1e1e; color: #eee; border-color: #333; }
+        [data-theme='dark'] .navbar-dark { background-color: #000 !important; }
+
+        /* Global Layout */
+        body { display: flex; flex-direction: column; min-height: 100vh; font-family: 'Inter', sans-serif; background-color: var(--bg-light); transition: background 0.3s ease; }
         main { flex: 1; }
 
         /* Navbar Styling */
@@ -30,6 +44,9 @@
         .dropdown-item { padding: 10px 20px; font-size: 0.9rem; font-weight: 500; transition: 0.2s; }
         .dropdown-item:hover { background-color: #f0f7ff; color: #0056b3; }
         .user-avatar { width: 35px; height: 35px; background: var(--medical-info); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        /* Maintenance Banner */
+        .maintenance-banner { z-index: 9999; position: sticky; top: 0; font-size: 0.9rem; }
 
         /* Footer */
         .custom-footer { background-color: var(--medical-blue); color: #ffffff; }
@@ -45,6 +62,15 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+
+    {% if hospital_settings.maintenance_mode %}
+    <div class="alert alert-warning border-0 rounded-0 mb-0 py-2 text-center shadow-sm maintenance-banner">
+        <i class="fas fa-exclamation-triangle me-2 text-dark"></i>
+        <strong class="text-dark">Maintenance Mode Active:</strong> 
+        <span class="text-dark">The public site is currently hidden from patients.</span>
+        <a href="{% url 'settings_general' %}" class="btn btn-sm btn-dark rounded-pill ms-3 px-3">Deactivate</a>
+    </div>
+    {% endif %}
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
         <div class="container">
@@ -124,6 +150,7 @@
                     <div class="d-flex gap-2 mt-3">
                         <a href="#" class="social-circle"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" class="social-circle"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://wa.me/233500000000" class="social-circle bg-success"><i class="fab fa-whatsapp"></i></a>
                         <a href="#" class="social-circle"><i class="fab fa-instagram"></i></a>
                         <a href="#" class="social-circle"><i class="fab fa-twitter"></i></a>
                     </div>
@@ -141,7 +168,7 @@
                 <div class="col-lg-3 col-md-6">
                     <h6 class="footer-heading mb-3">Support</h6>
                     <p class="small mb-2"><i class="fas fa-phone-alt me-2 text-info"></i> +233 (0) 50 000 0000</p>
-                    <p class="small mb-2"><i class="fas fa-envelope me-2 text-info"></i> help@hmscore.com</p>
+                    <p class="small mb-2"><i class="fas fa-envelope me-2 text-info"></i> {{ hospital_settings.support_email }}</p>
                     <p class="small"><i class="fas fa-clock me-2 text-info"></i> 24/7 Available</p>
                 </div>
 
@@ -159,12 +186,13 @@
             <hr class="mt-5 mb-4 border-light opacity-10">
             <div class="row align-items-center">
                 <div class="col-md-6 text-center text-md-start">
-                    <p class="small opacity-50 mb-0">© 2026 HMS Core. Designed for Clinical Excellence.</p>
+                    <p class="small opacity-50 mb-0">© 2026 {{ hospital_settings.hospital_name }}. Designed for Clinical Excellence.</p>
                 </div>
             </div>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

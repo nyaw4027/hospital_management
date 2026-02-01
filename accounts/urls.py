@@ -47,4 +47,19 @@ urlpatterns = [
     path('manager/user-status/<int:user_id>/<str:action>/', views.update_user_status, name='update_user_status'),
 
     path('manager/export-pdf/', views.export_activity_pdf, name='export_activity_pdf'),
+
+
+    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+
+
+    path('manager/wards/', views.manage_wards, name='manage_wards'),
+    path('manager/settings/', views.system_settings, name='system_settings'),
+
+    path('pharmacy/dashboard/', views.pharmacy_dashboard, name='pharmacy_dashboard'),
+    path('pharmacy/dispense/<int:record_id>/', views.update_prescription_status, name='update_prescription_status'),
+    path('pharmacy/add-stock/', views.add_medicine_stock, name='add_medicine_stock'),
+    path('lab/submit/<int:test_id>/', views.submit_lab_result, name='submit_lab_result'),
+    path('lab/print/<int:test_id>/', views.print_lab_report, name='print_lab_report'),
+    path('patient/<int:patient_id>/order-lab/', views.create_lab_order, name='create_lab_order'),
+    path('lab/result/<int:lab_id>/pdf/', views.download_lab_pdf, name='download_lab_pdf'),
 ]

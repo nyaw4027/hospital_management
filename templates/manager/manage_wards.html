@@ -1,0 +1,73 @@
+{% extends 'shared/base.html' %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Ward & Bed Management</h2>
+        <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addWardModal">
+            <i class="fas fa-plus me-2"></i>Add New Ward
+        </button>
+    </div>
+
+    <div class="row g-4 mb-5">
+        {% for ward in wards %}
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-3">
+                <h5 class="fw-bold text-primary">{{ ward.name }}</h5>
+                <p class="text-muted small mb-2">{{ ward.ward_type|title }}</p>
+                <div class="d-flex justify-content-between mb-1 small">
+                    <span>Occupancy</span>
+                    <span>{{ ward.occupied_beds }}/{{ ward.capacity }} Beds</span>
+                </div>
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar bg-primary" role="progressbar" 
+                         style="width: {% widthratio ward.occupied_beds ward.capacity 100 %}%"></div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Ward Name</th>
+                            <th>Type</th>
+                            <th>Total Capacity</th>
+                            <th>Current Occupancy</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ward in wards %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ ward.name }}</td>
+                            <td><span class="badge bg-info text-dark">{{ ward.ward_type }}</span></td>
+                            <td>{{ ward.capacity }}</td>
+                            <td>
+                                <span class="badge {% if ward.occupied_beds >= ward.capacity %}bg-danger{% else %}bg-success{% endif %}">
+                                    {{ ward.occupied_beds }} Occupied
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="#" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
+                                <a href="#" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fas fa-hospital-alt fa-3x mb-3 d-block"></i>
+                                No wards created yet. Click <strong>'Add New Ward'</strong> to begin.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

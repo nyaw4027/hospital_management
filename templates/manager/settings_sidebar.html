@@ -1,0 +1,27 @@
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="list-group list-group-flush">
+        <div class="list-group-item bg-light fw-bold py-3 text-uppercase small text-muted">
+            System Settings
+        </div>
+        
+        <a href="{% url 'settings_general' %}" class="list-group-item list-group-item-action border-0 p-3 {% if request.resolver_match.url_name == 'settings_general' %}active{% endif %}">
+            <i class="fas fa-cog me-2"></i>General Settings
+        </a>
+        
+        <a href="{% url 'settings_notifications' %}" class="list-group-item list-group-item-action border-0 p-3 {% if request.resolver_match.url_name == 'settings_notifications' %}active{% endif %}">
+            <i class="fas fa-bell me-2"></i>Notifications
+        </a>
+
+        <a href="{% url 'email_logs' %}" class="list-group-item list-group-item-action border-0 p-3 {% if request.resolver_match.url_name == 'email_logs' %}active{% endif %}">
+            <i class="fas fa-history me-2"></i>Email Logs
+        </a>
+
+        <a href="{% url 'settings_security' %}" class="list-group-item list-group-item-action border-0 p-3 {% if request.resolver_match.url_name == 'settings_security' %}active{% endif %}">
+            <i class="fas fa-user-shield me-2"></i>Security
+        </a>
+
+        <a href="{% url 'settings_danger' %}" class="list-group-item list-group-item-action border-0 p-3 text-danger {% if request.resolver_match.url_name == 'settings_danger' %}active{% endif %}">
+            <i class="fas fa-exclamation-triangle me-2"></i>Danger Zone
+        </a>
+    </div>
+</div>

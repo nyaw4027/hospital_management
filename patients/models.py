@@ -1,6 +1,7 @@
 from django.db import models
 from accounts.models import User
 from cashier.models import Bill
+from django.utils import timezone
 
 class Patient(models.Model):
     """Patient model"""
@@ -76,6 +77,31 @@ class Payment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+class Ward(models.Model):
+    WARD_TYPES = [
+        ('General', 'General'),
+        ('ICU', 'Intensive Care Unit'),
+        ('Pediatric', 'Pediatric'),
+        ('Maternity', 'Maternity'),
+    ]
+    name = models.CharField(max_length=100)
+    ward_type = models.CharField(max_length=50, choices=WARD_TYPES)
+    total_beds = models.IntegerField(default=10)
+
+    def __str__(self):
+        return f"{self.name} ({self.ward_type})"
 
 
+
+
+# patients/models.py
+
+class Admission(models.Model):
+    patient = models.ForeignKey('patients.Patient', on_delete=models.CASCADE)
+    # This points to the Bed model in the manager app
+    bed = models.OneToOneField('manager.Bed', on_delete=models.CASCADE, related_name='admission_record')
+    doctor = models.ForeignKey('doctors.Doctor', on_delete=models.SET_NULL, null=True)
+    reason = models.TextField()
+    admitted_at = models.DateTimeField(auto_now_add=True)
+    discharged_at = models.DateTimeField(null=True, blank=True)
 

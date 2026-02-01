@@ -27,30 +27,37 @@
         padding: 12px 15px;
         margin: 8px 0;
         display: inline-block;
-        border: 1px solid #ced4da;
+        border: 1px solid #dee2e6;
         border-radius: 10px;
+        background-color: #f8f9fa;
         box-sizing: border-box;
-        transition: 0.3s;
+        transition: all 0.3s ease;
     }
 
     #id_username:focus, #id_password:focus {
+        background-color: #fff;
         border-color: #0d6efd;
         outline: none;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
     }
 
     .btn-login {
         padding: 12px;
         font-weight: 600;
-        border-radius: 10px;
+        border-radius: 50px; /* Matching your pill-style buttons */
         background: #0d6efd;
         border: none;
         transition: 0.3s;
     }
 
-    .btn-login:hover { background: #0056b3; transform: translateY(-2px); }
+    .btn-login:hover { 
+        background: #0056b3; 
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+    }
     
     .error-list { list-style: none; padding: 0; margin: 0; }
+    .x-small { font-size: 0.75rem; }
 </style>
 {% endblock %}
 
@@ -58,32 +65,40 @@
 <div class="container login-container my-5">
     <div class="row w-100 justify-content-center">
         <div class="col-lg-10">
-            <div class="card login-card shadow-lg">
+            <div class="card login-card shadow-lg border-0">
                 <div class="row g-0">
                     <div class="col-md-6 d-none d-md-flex login-info-side">
-                        <h2 class="fw-bold mb-4">Welcome Back to <br>HMS Core</h2>
+                        <div class="mb-4">
+                            <i class="fas fa-hospital-symbol fa-3x text-warning mb-3"></i>
+                            <h2 class="fw-bold">Welcome Back to <br>HMS Core</h2>
+                        </div>
                         <p class="opacity-75 mb-4">Access your healthcare dashboard, manage patient records, and streamline your medical workflow in one secure environment.</p>
+                        
                         <div class="d-flex align-items-center mb-3">
-                            <i class="fas fa-check-circle me-3 text-warning"></i>
+                            <div class="bg-white bg-opacity-25 rounded-circle p-2 me-3">
+                                <i class="fas fa-shield-alt text-warning"></i>
+                            </div>
                             <span>Secure Encrypted Login</span>
                         </div>
                         <div class="d-flex align-items-center mb-3">
-                            <i class="fas fa-check-circle me-3 text-warning"></i>
-                            <span>HIPAA Compliant Data Handling</span>
+                            <div class="bg-white bg-opacity-25 rounded-circle p-2 me-3">
+                                <i class="fas fa-user-shield text-warning"></i>
+                            </div>
+                            <span>Clinical Grade Security</span>
                         </div>
                     </div>
 
-                    <div class="col-md-6 bg-white p-5">
+                    <div class="col-md-6 bg-white p-4 p-lg-5">
                         <div class="text-center mb-4">
                             <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                                 <i class="fas fa-user-lock fa-lg"></i>
                             </div>
-                            <h3 class="fw-bold">Account Login</h3>
-                            <p class="text-muted small">Please enter your credentials to continue</p>
+                            <h3 class="fw-bold mb-1">Account Login</h3>
+                            <p class="text-muted small">Enter your credentials to continue</p>
                         </div>
 
                         {% if form.non_field_errors %}
-                        <div class="alert alert-danger py-2 shadow-sm mb-4">
+                        <div class="alert alert-danger py-2 shadow-sm mb-4 border-0">
                             <ul class="error-list small">
                                 {% for error in form.non_field_errors %}
                                     <li><i class="fas fa-exclamation-triangle me-2"></i>{{ error }}</li>
@@ -96,7 +111,7 @@
                             {% csrf_token %}
                             
                             <div class="mb-3">
-                                <label class="form-label fw-bold small text-uppercase mb-0">Username</label>
+                                <label class="form-label fw-bold small text-uppercase text-muted mb-1">Username</label>
                                 {{ form.username }}
                                 {% if form.username.errors %}
                                     <div class="text-danger x-small mt-1">{{ form.username.errors }}</div>
@@ -105,7 +120,7 @@
 
                             <div class="mb-4">
                                 <div class="d-flex justify-content-between">
-                                    <label class="form-label fw-bold small text-uppercase mb-0">Password</label>
+                                    <label class="form-label fw-bold small text-uppercase text-muted mb-1">Password</label>
                                     <a href="#" class="text-decoration-none small text-primary">Forgot?</a>
                                 </div>
                                 {{ form.password }}
@@ -128,7 +143,7 @@
             </div>
             
             <div class="text-center mt-4 text-muted small">
-                <i class="fas fa-shield-alt me-1 text-success"></i> SSL Secure Connection | Clinical Grade Security
+                <i class="fas fa-lock me-1 text-success"></i> HIPAA Compliant Data Handling | 256-bit Encryption
             </div>
         </div>
     </div>

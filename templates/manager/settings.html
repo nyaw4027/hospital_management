@@ -1,0 +1,102 @@
+{% extends 'shared/base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            {% include 'manager/settings_sidebar.html' %}
+        </div>
+
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold mb-0">General Configuration</h4>
+                        <span class="badge bg-soft-primary text-primary px-3 py-2 rounded-pill">Version 2.1.0</span>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="mb-5">
+                            <h6 class="text-uppercase text-muted fw-bold small mb-3">Hospital Profile</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Hospital Name</label>
+                                    <input type="text" name="hospital_name" class="form-control rounded-3" value="{{ settings.hospital_name }}">
+                                    <div class="form-text">This name appears on reports and invoices.</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Support Email</label>
+                                    <input type="email" name="support_email" class="form-control rounded-3" value="{{ settings.support_email }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-5">
+                            <h6 class="text-uppercase text-muted fw-bold small mb-3">System Controls</h6>
+                            <div class="card bg-light border-0 rounded-4 p-3">
+                                
+                                <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0">
+                                    <div>
+                                        <label class="fw-bold mb-0">Maintenance Mode</label>
+                                        <p class="text-muted small mb-0">Disable access for non-admin users during updates.</p>
+                                    </div>
+                                    <input class="form-check-input ms-0" type="checkbox" name="maintenance_mode" 
+                                           id="maintenanceSwitch" style="width: 3em; height: 1.5em;"
+                                           {% if settings.maintenance_mode %}checked{% endif %}>
+                                </div>
+                                
+                                <hr class="my-3">
+                                
+                                <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0">
+                                    <div>
+                                        <label class="fw-bold mb-0">Email Notifications</label>
+                                        <p class="text-muted small mb-0">Global toggle for all automated patient emails.</p>
+                                    </div>
+                                    <input class="form-check-input ms-0" type="checkbox" name="email_notifications_enabled" 
+                                           style="width: 3em; height: 1.5em;"
+                                           {% if settings.email_notifications_enabled %}checked{% endif %}>
+                                </div>
+
+                                <hr class="my-3">
+
+                                <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0">
+                                    <div>
+                                        <label class="fw-bold mb-0">Night Mode</label>
+                                        <p class="text-muted small mb-0">Switch to a dark interface to reduce eye strain.</p>
+                                    </div>
+                                    <input class="form-check-input ms-0" type="checkbox" name="night_mode" 
+                                           id="nightModeToggle" style="width: 3em; height: 1.5em;"
+                                           {% if settings.night_mode %}checked{% endif %}>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 border-top pt-4">
+                            <button type="reset" class="btn btn-light rounded-pill px-4">Discard Changes</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 shadow">
+                                <i class="fas fa-save me-2"></i>Update Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-soft-primary { background-color: #e7f1ff; }
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+    }
+    /* Ensure the sidebar active item looks distinct */
+    .list-group-item.active {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+    }
+</style>
+{% endblock %}

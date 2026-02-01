@@ -125,13 +125,13 @@
                                 <div class="small fw-bold">New Staff</div>
                             </div>
                         </a>
-                        <a href="#" class="col-6 action-tile">
+                        <a href="{% url 'manage_wards' %}" class="col-6 action-tile">
                             <div class="card h-100 text-center p-3">
                                 <i class="fas fa-bed fa-2x mb-2 text-warning"></i>
                                 <div class="small fw-bold">Wards</div>
                             </div>
                         </a>
-                        <a href="#" class="col-6 action-tile">
+                        <a href="{% url 'system_settings' %}" class="col-6 action-tile">
                             <div class="card h-100 text-center p-3">
                                 <i class="fas fa-cog fa-2x mb-2 text-secondary"></i>
                                 <div class="small fw-bold">Settings</div>
@@ -153,19 +153,31 @@
     <div class="row g-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                <div class="card-header bg-white border-0 py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <h5 class="fw-bold text-dark mb-0"><i class="fas fa-list-ul text-primary me-2"></i>Activity Audit Trail</h5>
-                    <div class="dropdown">
-                        <button class="btn btn-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            Filter by Action
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Login</a></li>
-                            <li><a class="dropdown-item" href="#">Updates</a></li>
-                            <li><a class="dropdown-item" href="#">Deletions</a></li>
-                        </ul>
+                    
+                    <div class="d-flex gap-2">
+                        <form method="GET" class="input-group input-group-sm" style="width: 200px;">
+                            <input type="text" name="q" class="form-control" placeholder="Search logs..." value="{{ query|default:'' }}">
+                            <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+                        </form>
+
+                        <div class="dropdown">
+                            <button class="btn btn-light btn-sm dropdown-toggle border" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-filter me-1"></i> {{ current_filter|default:"Filter by Action" }}
+                            </button>
+                            <ul class="dropdown-menu shadow border-0">
+                                <li><a class="dropdown-item" href="{% url 'manager_dashboard' %}">All Activities</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="?action=Login">Logins</a></li>
+                                <li><a class="dropdown-item" href="?action=Role">Role Changes</a></li>
+                                <li><a class="dropdown-item" href="?action=Verification">Verifications</a></li>
+                                <li><a class="dropdown-item" href="?action=Deactivate">Deactivations</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
+
                 <div class="card-body p-0">
                     <div class="table-responsive table-container">
                         <table class="table table-hover align-middle mb-0">
@@ -187,16 +199,20 @@
                                             </div>
                                             <div>
                                                 <div class="fw-bold text-dark">{{ log.user.username }}</div>
-                                                <div class="text-muted small">{{ log.user.email }}</div>
+                                                <div class="text-muted small" style="font-size: 0.75rem;">{{ log.user.email }}</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                    <span class="badge bg-{{ log.action_color }} text-{{ log.action_color }} bg-opacity-10 px-3">
-    {{ log.action }}
-</span>
-                                            {{ log.action }}
-                                        </span>
+                                        {% if "Role" in log.action %}
+                                            <span class="badge bg-primary bg-opacity-10 text-primary px-3 rounded-pill">{{ log.action }}</span>
+                                        {% elif "Login" in log.action %}
+                                            <span class="badge bg-success bg-opacity-10 text-success px-3 rounded-pill">{{ log.action }}</span>
+                                        {% elif "Deactivate" in log.action %}
+                                            <span class="badge bg-danger bg-opacity-10 text-danger px-3 rounded-pill">{{ log.action }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 rounded-pill">{{ log.action }}</span>
+                                        {% endif %}
                                     </td>
                                     <td class="text-muted small">
                                         {{ log.timestamp|date:"M d, Y" }}<br>
@@ -207,14 +223,14 @@
                                     </td>
                                 </tr>
                                 {% empty %}
-                                <tr><td colspan="4" class="text-center py-5 text-muted">No system activity recorded yet.</td></tr>
+                                <tr><td colspan="4" class="text-center py-5 text-muted">No activity matching your search.</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </div>
                 <div class="card-footer bg-white border-0 py-3 text-center">
-                    <a href="#" class="text-decoration-none small fw-bold">View All Transactions <i class="fas fa-chevron-right ms-1"></i></a>
+                    <a href="{% url 'manager_dashboard' %}" class="text-decoration-none small fw-bold">Refresh Feed <i class="fas fa-sync-alt ms-1"></i></a>
                 </div>
             </div>
         </div>
