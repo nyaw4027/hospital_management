@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db.models import F, Sum
 from django.utils import timezone
 from django.http import FileResponse
+from django.db import transaction
 import io
 
 # PDF Imports
@@ -12,12 +13,14 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
+from .models import DispensingLog
 
 # Model Imports
 from doctors.models import Prescription
 from accounts.models import Medicine  # Ensure this path is correct for your project
 
 @login_required
+@user_passes_test(lambda u: u.role == 'pharmacist')
 def pharmacy_dashboard(request):
     """Unified Pharmacy Dashboard: Handles Inventory and Dispensing Queues"""
     if request.user.role not in ['pharmacist', 'manager']:
@@ -57,28 +60,59 @@ def pharmacy_dashboard(request):
 
 @login_required
 def update_prescription_status(request, record_id):
-    """Handles the actual dispensing and inventory deduction"""
+    if request.user.role not in ['pharmacist', 'manager']:
+        messages.error(request, "Unauthorized.")
+        return redirect('dashboard')
+
     if request.method == 'POST':
         prescription = get_object_or_404(Prescription, id=record_id)
-        
-        # We match medication_name from Prescription to name in Medicine
         medicine = Medicine.objects.filter(name__iexact=prescription.medication_name).first()
+        qty_to_deduct = getattr(prescription, 'quantity', 1) 
+
+        try:
+            with transaction.atomic():
+                if medicine:
+                    if medicine.expiry_date and medicine.expiry_date <= timezone.now().date():
+                        messages.error(request, f"DISPENSING BLOCKED: {medicine.name} expired!")
+                        return redirect('pharmacy_dashboard')
+
+                    if medicine.quantity >= qty_to_deduct:
+                        medicine.quantity -= qty_to_deduct
+                        medicine.save()
+                        
+                        prescription.status = 'dispensed'
+                        prescription.save()
+
+                        # --- ADD AUDIT LOG HERE ---
+                        DispensingLog.objects.create(
+                            pharmacist=request.user,
+                            patient_name=prescription.patient.get_full_name() if hasattr(prescription.patient, 'get_full_name') else str(prescription.patient),
+                            medication_name=medicine.name,
+                            quantity_dispensed=qty_to_deduct,
+                            notes=f"Prescription ID: {prescription.id}"
+                        )
+                        # -------------------------
+
+                        messages.success(request, f"Dispensed {qty_to_deduct} unit(s) of {medicine.name} and logged.")
+                    else:
+                        messages.error(request, f"Insufficient stock! Available: {medicine.quantity}")
+                        return redirect('pharmacy_dashboard')
+                else:
+                    prescription.status = 'dispensed'
+                    prescription.save()
+                    
+                    # Optional: Log even if medicine isn't in inventory
+                    DispensingLog.objects.create(
+                        pharmacist=request.user,
+                        patient_name=str(prescription.patient),
+                        medication_name=prescription.medication_name,
+                        quantity_dispensed=qty_to_deduct,
+                        notes="DISPENSED UNTRACKED ITEM"
+                    )
+                    messages.warning(request, "Dispensed (Untracked item logged).")
         
-        if medicine:
-            if medicine.quantity >= 1:
-                medicine.quantity -= 1
-                medicine.save()
-                
-                prescription.status = 'dispensed'
-                prescription.save()
-                messages.success(request, f"Successfully dispensed {medicine.name}.")
-            else:
-                messages.error(request, f"Out of stock! Cannot dispense {medicine.name}.")
-        else:
-            # Dispense even if not in inventory system, but warn
-            prescription.status = 'dispensed'
-            prescription.save()
-            messages.warning(request, "Dispensed, but item not found in inventory tracking.")
+        except Exception as e:
+            messages.error(request, f"A system error occurred: {str(e)}")
             
     return redirect('pharmacy_dashboard')
 
@@ -124,3 +158,41 @@ def generate_inventory_report(request):
     doc.build(elements)
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename='Inventory_Report.pdf')
+
+
+@login_required
+def stock_alerts_summary(request):
+    if request.user.role != 'manager':
+        return redirect('dashboard')
+        
+    from .utils import get_inventory_alert_data
+    context = get_inventory_alert_data()
+    return render(request, 'pharmacy/alerts_summary.html', context)
+
+
+@login_required
+def pharmacy_audit_logs(request):
+    if request.user.role != 'manager':
+        messages.error(request, "Access restricted to Managers.")
+        return redirect('dashboard')
+
+    logs = DispensingLog.objects.all().select_related('pharmacist')
+
+    # Simple Search/Filter Logic
+    query = request.GET.get('q')
+    if query:
+        logs = logs.filter(
+            models.Q(patient_name__icontains=query) | 
+            models.Q(medication_name__icontains=query) |
+            models.Q(pharmacist__last_name__icontains=query)
+        )
+
+    context = {
+        'logs': logs[:100], # Limit to last 100 for performance
+    }
+    return render(request, 'pharmacy/audit_logs.html', context)
+
+
+
+
+

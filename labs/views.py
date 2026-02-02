@@ -6,6 +6,12 @@ from django.db.models import Count
 from accounts.decorators import lab_tech_only
 from doctors.models import LabRequest
 from .utils import generate_lab_pdf
+import io
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
+from django.conf import settings
 
 @login_required
 @lab_tech_only
@@ -137,7 +143,7 @@ def print_lab_report(request, test_id):
 
 
 
-@@login_required
+@login_required
 @lab_tech_only
 def email_lab_report(request, test_id):
     test = get_object_or_404(LabRequest, id=test_id)
@@ -176,4 +182,3 @@ def email_lab_report(request, test_id):
     return redirect('lab_dashboard')
 
 
-    

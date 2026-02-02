@@ -93,6 +93,7 @@ class Medicine(models.Model):
     quantity = models.PositiveIntegerField(default=0)
     reorder_level = models.PositiveIntegerField(default=10)
     price_per_unit = models.DecimalField(max_digits=10, decimal_places=2)
+    expiry_date = models.DateField(null=True, blank=True) # Add this
     last_updated = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -104,6 +105,19 @@ class Medicine(models.Model):
     @property
     def is_low_stock(self):
         return self.quantity <= self.reorder_level
+
+    @property
+    def is_expired(self):
+        if self.expiry_date:
+            return self.expiry_date <= timezone.now().date()
+        return False
+
+    @property
+    def days_to_expiry(self):
+        if self.expiry_date:
+            delta = self.expiry_date - timezone.now().date()
+            return delta.days
+        return None
 
 
 

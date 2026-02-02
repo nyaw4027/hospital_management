@@ -29,6 +29,7 @@ urlpatterns = [
     # This must come AFTER your custom login path to avoid template overriding
     path('accounts/', include('allauth.urls')),
 
+    
 
     path('nurse/', include('nurses.urls')),
 ]

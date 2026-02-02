@@ -25,3 +25,38 @@ class Prescription(models.Model):
 
     def __str__(self):
         return f"{self.medication_name} - {self.status}"
+
+
+class Medication(models.Model):
+    name = models.CharField(max_length=200)
+    category = models.CharField(max_length=100) # Antibiotics, Painkillers, etc.
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    current_stock = models.PositiveIntegerField(default=0)
+    reorder_level = models.PositiveIntegerField(default=10) # Alert when below this
+    expiry_date = models.DateField()
+
+    def __str__(self):
+        return f"{self.name} ({self.current_stock} left)"
+
+    @property
+    def is_low_stock(self):
+        return self.current_stock <= self.reorder_level
+
+
+class DispensingLog(models.Model):
+    pharmacist = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True)
+    patient_name = models.CharField(max_length=255)
+    medication_name = models.CharField(max_length=255)
+    quantity_dispensed = models.PositiveIntegerField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.medication_name} dispensed to {self.patient_name} by {self.pharmacist}"
+
+
+
+

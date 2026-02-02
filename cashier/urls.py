@@ -25,4 +25,5 @@ urlpatterns = [
     # Receipt Generation (PDFs)
     path('payment/<int:payment_id>/receipt/', views.print_receipt, name='print_receipt'),
     path('receipt/lab/<int:lab_id>/', views.print_lab_receipt, name='print_lab_receipt'),
+    path('analytics/', views.manager_analytics, name='manager_analytics'),
 ]

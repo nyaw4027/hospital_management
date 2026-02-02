@@ -1,0 +1,126 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fas fa-bed text-primary me-2"></i>Nursing Ward</h2>
+            <p class="text-muted small mb-0">Manage admitted patients and daily nursing rounds.</p>
+        </div>
+        <span class="badge bg-primary rounded-pill px-3 py-2 shadow-sm">{{ total_occupied }} Patients Admitted</span>
+    </div>
+
+    <div class="row g-4">
+        {% for admit in admissions %}
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                <div class="bg-primary" style="height: 4px;"></div>
+                
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="badge bg-info-subtle text-info border border-info-subtle">Bed {{ admit.bed_number }}</span>
+                        <small class="text-muted"><i class="far fa-calendar-alt me-1"></i>Day {{ admit.days_spent }}</small>
+                    </div>
+                    
+                    <h5 class="fw-bold mb-1">{{ admit.patient.user.get_full_name }}</h5>
+                    <p class="text-muted small mb-3">{{ admit.ward.name }} ({{ admit.ward.category }})</p>
+                    
+                    <div class="p-2 bg-light rounded-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center small">
+                            <span class="text-muted">Running Bill:</span>
+                            <span class="fw-bold text-dark">GH₵ {{ admit.running_bill }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 p-2 bg-primary bg-opacity-10 rounded-3 border border-primary border-opacity-25">
+                        <div class="row text-center g-0">
+                            <div class="col-4 border-end border-primary border-opacity-25">
+                                <small class="d-block text-muted" style="font-size: 0.65rem; font-weight: 700;">TEMP</small>
+                                <span class="fw-bold small text-primary">{{ admit.vitals.last.temperature|default:"--" }}°C</span>
+                            </div>
+                            <div class="col-4 border-end border-primary border-opacity-25">
+                                <small class="d-block text-muted" style="font-size: 0.65rem; font-weight: 700;">BP</small>
+                                <span class="fw-bold small text-primary">{{ admit.vitals.last.blood_pressure|default:"--/--" }}</span>
+                            </div>
+                            <div class="col-4">
+                                <small class="d-block text-muted" style="font-size: 0.65rem; font-weight: 700;">PULSE</small>
+                                <span class="fw-bold small text-primary">{{ admit.vitals.last.pulse_rate|default:"--" }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary btn-sm rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#vitalsModal{{ admit.id }}">
+                            <i class="fas fa-plus-circle me-1"></i> Log Vitals
+                        </button>
+                        
+                        <form method="POST" action="{% url 'discharge_patient' admit.id %}" onsubmit="return confirm('Confirm Discharge? This will generate the final bill for the cashier.');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill w-100 fw-bold">
+                                <i class="fas fa-sign-out-alt me-1"></i> Discharge
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="vitalsModal{{ admit.id }}" tabindex="-1" aria-labelledby="vitalsModalLabel{{ admit.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 rounded-4 shadow">
+                    <form method="POST" action="{% url 'log_vitals' admit.id %}">
+                        {% csrf_token %}
+                        <div class="modal-header border-0 pt-4 px-4">
+                            <h5 class="modal-title fw-bold" id="vitalsModalLabel{{ admit.id }}">
+                                <i class="fas fa-file-medical text-primary me-2"></i>Nursing Round
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body px-4">
+                            <div class="alert alert-info py-2 border-0 rounded-3 mb-4">
+                                <small><i class="fas fa-user me-2"></i>Patient: <strong>{{ admit.patient.user.get_full_name }}</strong></small><br>
+                                <small><i class="fas fa-bed me-2"></i>Bed Number: <strong>{{ admit.bed_number }}</strong></small>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="small fw-bold mb-1">Temperature (°C)</label>
+                                    <input type="number" step="0.1" name="temperature" class="form-control rounded-pill border-2" placeholder="e.g. 37.2" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="small fw-bold mb-1">Pulse Rate (BPM)</label>
+                                    <input type="number" name="pulse_rate" class="form-control rounded-pill border-2" placeholder="e.g. 75" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="small fw-bold mb-1">Blood Pressure (mmHg)</label>
+                                <input type="text" name="blood_pressure" class="form-control rounded-pill border-2" placeholder="e.g. 120/80" required>
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="small fw-bold mb-1">Nursing Observation Notes</label>
+                                <textarea name="notes" class="form-control rounded-4 border-2" rows="3" placeholder="Describe patient condition, pain levels, or medication response..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pb-4 px-4">
+                            <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Save Record</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-bed text-light" style="font-size: 4rem;"></i>
+            </div>
+            <h4 class="text-muted fw-bold">The ward is currently empty.</h4>
+            <p class="text-muted">Admitted patients will appear here for monitoring.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

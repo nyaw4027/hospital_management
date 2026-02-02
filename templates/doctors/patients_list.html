@@ -1,0 +1,79 @@
+{% extends 'shared/base.html' %}
+
+{% block title %}Patient Directory{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row align-items-center mb-4">
+        <div class="col-md-6">
+            <h3 class="fw-bold mb-0">Patient Directory</h3>
+            <p class="text-muted small">Search and manage hospital health records</p>
+        </div>
+        <div class="col-md-6">
+            <form method="GET" action="{% url 'doctor_patients' %}" class="d-flex shadow-sm rounded-pill overflow-hidden bg-white border">
+                <input type="text" name="q" class="form-control border-0 ps-4 py-2" placeholder="Search by name, ID, or phone..." value="{{ query|default:'' }}">
+                <button class="btn btn-primary px-4 border-0 rounded-0" type="submit">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        {% for patient in patients %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 hover-shadow transition">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar-md bg-soft-primary text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold me-3" style="width: 50px; height: 50px; background-color: #e7f1ff;">
+                            {{ patient.user.first_name|first }}{{ patient.user.last_name|first }}
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0">{{ patient.user.get_full_name }}</h6>
+                            <small class="text-muted">ID: {{ patient.patient_id }}</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Gender</small>
+                            <span class="small fw-bold">{{ patient.gender|title }}</span>
+                        </div>
+                        <div class="col-6 text-end">
+                            <small class="text-muted d-block">Blood Group</small>
+                            <span class="badge bg-danger-subtle text-danger rounded-pill">{{ patient.blood_group|default:"--" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="border-top pt-3 d-flex justify-content-between align-items-center">
+                        <div class="small">
+                            <i class="fas fa-phone-alt text-muted me-1"></i> {{ patient.phone_number|truncatechars:15 }}
+                        </div>
+                        <a href="{% url 'patient_detail' patient.id %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                            Open File
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="bg-white p-5 rounded-4 shadow-sm">
+                <i class="fas fa-user-slash fa-3x text-light mb-3"></i>
+                <h5 class="text-muted">No patients found</h5>
+                <p class="text-muted small">Try searching with a different name or ID.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+        transition: all 0.3s ease;
+    }
+    .bg-soft-primary { background-color: rgba(13, 110, 253, 0.1); }
+</style>
+{% endblock %}

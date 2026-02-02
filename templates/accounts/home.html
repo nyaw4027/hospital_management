@@ -1,165 +1,508 @@
 {% extends 'shared/base.html' %}
-{% load static %}
 
-{% block title %}Welcome to HMS Core | Premium Healthcare Management{% endblock %}
+{% block title %}Home - HMS Core Hospital Management System{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* 1. Improved Hero Section with correct viewport handling */
-    .hero-wrap {
-        height: 75vh;
-        min-height: 550px;
-        background: linear-gradient(rgba(12, 30, 62, 0.85), rgba(13, 110, 253, 0.65)), 
-                    url('https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1920&q=80');
-        background-size: cover;
-        background-position: center;
-        /* Fixed background can be buggy on mobile; changed to scroll for compatibility */
-        background-attachment: scroll; 
-        display: flex;
-        align-items: center;
+    /* Hero Section */
+    .hero-section {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
         color: white;
-        margin-bottom: 0;
-    }
-
-    .hero-content h1 {
-        font-size: clamp(2.5rem, 5vw, 4rem); /* Fluid typography */
-        font-weight: 800;
-        letter-spacing: -1.5px;
-        line-height: 1.1;
-    }
-
-    /* 2. Portal Cards - Fixed Overlap & Hover */
-    .portal-link {
-        text-decoration: none !important;
-        color: inherit;
-        display: block;
-        height: 100%;
-    }
-
-    .portal-section {
+        padding: 100px 0 120px;
         position: relative;
-        z-index: 20;
-        margin-top: -80px; /* Controlled overlap */
+        overflow: hidden;
     }
-
-    .portal-card {
-        border: none;
-        border-radius: 20px;
-        transition: all 0.3s ease-in-out;
-        background: #ffffff;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 100px;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23f8f9fa" d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,128C960,128,1056,192,1152,197.3C1248,203,1344,149,1392,122.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+        background-size: cover;
     }
-
-    .portal-card:hover {
+    
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        animation: fadeInDown 1s ease;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .hero-subtitle {
+        font-size: 1.3rem;
+        margin-bottom: 2rem;
+        opacity: 0.95;
+        animation: fadeInUp 1s ease 0.3s both;
+    }
+    
+    .hero-buttons {
+        animation: fadeInUp 1s ease 0.6s both;
+    }
+    
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Hero Buttons */
+    .btn-hero {
+        padding: 14px 36px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        border: 2px solid;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-hero-primary {
+        background: white;
+        color: #1e3c72;
+        border-color: white;
+    }
+    
+    .btn-hero-primary:hover {
+        background: transparent;
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(255,255,255,0.3);
+    }
+    
+    .btn-hero-outline {
+        background: transparent;
+        color: white;
+        border-color: white;
+    }
+    
+    .btn-hero-outline:hover {
+        background: white;
+        color: #1e3c72;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(255,255,255,0.3);
+    }
+    
+    /* Feature Cards */
+    .feature-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2.5rem 2rem;
+        text-align: center;
+        transition: all 0.4s ease;
+        border: 1px solid #eee;
+        height: 100%;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    
+    .feature-card:hover {
         transform: translateY(-10px);
-        box-shadow: 0 20px 40px rgba(13, 110, 253, 0.15) !important;
+        box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        border-color: #00d4ff;
     }
-
-    .icon-box {
-        width: 55px;
-        height: 55px;
-        background: rgba(13, 110, 253, 0.08);
-        color: #0d6efd;
-        border-radius: 15px;
+    
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        border-radius: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.4rem;
-        margin-bottom: 20px;
-        transition: 0.3s;
+        font-size: 2rem;
+        transition: all 0.3s ease;
     }
-
-    .portal-card:hover .icon-box {
-        background: #0d6efd;
-        color: #fff;
-        transform: scale(1.1);
+    
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1) rotate(5deg);
     }
-
-    /* Fix for small screens */
-    @media (max-width: 991.98px) {
-        .portal-section { margin-top: 40px; }
-        .hero-wrap { text-align: center; height: auto; padding: 100px 0; }
+    
+    .feature-card h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #1e293b;
+    }
+    
+    .feature-card p {
+        color: #64748b;
+        line-height: 1.7;
+        margin-bottom: 0;
+        font-size: 1rem;
+    }
+    
+    /* Stats Section */
+    .stats-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 80px 0;
+        margin: 0;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .stat-number {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .stat-label {
+        font-size: 1.1rem;
+        opacity: 0.95;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    /* Services Grid */
+    .service-item {
+        background: white;
+        border-radius: 12px;
+        padding: 1.8rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .service-item:hover {
+        transform: translateX(10px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        border-color: #00d4ff;
+    }
+    
+    .service-item h5 {
+        font-weight: 700;
+        margin-bottom: 0.7rem;
+        color: #1e293b;
+        font-size: 1.15rem;
+    }
+    
+    .service-item p {
+        color: #64748b;
+        margin-bottom: 0;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+    
+    /* CTA Section */
+    .cta-section {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 80px 0;
+        border-radius: 24px;
+        margin: 60px 0;
+    }
+    
+    .cta-section h2 {
+        font-size: 2.8rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+    }
+    
+    .cta-section p {
+        font-size: 1.3rem;
+        opacity: 0.95;
+        margin-bottom: 2rem;
+    }
+    
+    /* Section Titles */
+    .section-title {
+        font-size: 2.8rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        color: #1e293b;
+        position: relative;
+        display: inline-block;
+    }
+    
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 2px;
+    }
+    
+    .section-subtitle {
+        color: #64748b;
+        font-size: 1.2rem;
+        margin-bottom: 3rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.2rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+        }
+        
+        .cta-section h2 {
+            font-size: 2rem;
+        }
+        
+        .cta-section p {
+            font-size: 1.1rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-
-<section class="hero-wrap">
+<!-- Hero Section -->
+<section class="hero-section">
     <div class="container">
-        <div class="row">
-            <div class="col-lg-8 hero-content">
-                <span class="badge bg-primary mb-3 px-3 py-2 text-uppercase shadow-sm">Trusted Healthcare Partner</span>
-                <h1 class="mb-4">Compassionate Care <br>Powered by Innovation</h1>
-                <p class="lead opacity-90 mb-5 pe-lg-5">
-                    Our Hospital Management System integrates every department—from clinical 
-                    records to financial billing—into one seamless, secure experience.
+        <div class="row align-items-center">
+            <div class="col-lg-7 hero-content">
+                <h1 class="hero-title">
+                    <i class="fas fa-hospital-alt me-3"></i>
+                    Welcome to HMS Core
+                </h1>
+                <p class="hero-subtitle">
+                    Your Complete Hospital Management Solution - Streamlining Healthcare with Innovation, 
+                    Efficiency, and Compassionate Care
                 </p>
-                {% if not user.is_authenticated %}
-                    <div class="d-flex flex-wrap gap-3">
-                        <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5 rounded-pill shadow-lg">Get Started</a>
-                        <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg px-5 rounded-pill">Staff Login</a>
-                    </div>
-                {% else %}
-                    <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg px-5 rounded-pill shadow">Go to Dashboard</a>
-                {% endif %}
+                <div class="hero-buttons d-flex flex-wrap gap-3">
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'register' %}" class="btn-hero btn-hero-primary">
+                            <i class="fas fa-user-plus me-2"></i> Get Started
+                        </a>
+                        <a href="{% url 'login' %}" class="btn-hero btn-hero-outline">
+                            <i class="fas fa-sign-in-alt me-2"></i> Login
+                        </a>
+                    {% else %}
+                        <a href="{% url 'dashboard' %}" class="btn-hero btn-hero-primary">
+                            <i class="fas fa-tachometer-alt me-2"></i> Go to Dashboard
+                        </a>
+                        <a href="{% url 'services' %}" class="btn-hero btn-hero-outline">
+                            <i class="fas fa-list me-2"></i> View Services
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-5 text-center d-none d-lg-block">
+                <i class="fas fa-heartbeat" style="font-size: 18rem; opacity: 0.2;"></i>
             </div>
         </div>
     </div>
 </section>
 
-<section class="container portal-section mb-5">
-    <div class="row g-4 justify-content-center">
-        <div class="col-md-6 col-lg">
-            <a href="{% url 'doctor_dashboard' %}" class="portal-link">
-                <div class="card portal-card h-100 p-4 border-0">
-                    <div class="icon-box"><i class="fas fa-user-md"></i></div>
-                    <h6 class="fw-bold mb-2">Doctor Portal</h6>
-                    <p class="text-muted small mb-0">Manage patient history, e-prescriptions, and schedules.</p>
+<!-- Features Section -->
+<div class="container my-5 py-5">
+    <div class="text-center mb-5">
+        <h2 class="section-title">Designed For Everyone</h2>
+        <p class="section-subtitle">Comprehensive tools for all healthcare stakeholders</p>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="feature-card">
+                <div class="feature-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="fas fa-user-md"></i>
                 </div>
-            </a>
+                <h3>For Doctors</h3>
+                <p>Manage patients, appointments, and medical records with ease and efficiency</p>
+            </div>
         </div>
-
-        <div class="col-md-6 col-lg">
-            <a href="{% url 'patient_dashboard' %}" class="portal-link">
-                <div class="card portal-card h-100 p-4 border-0">
-                    <div class="icon-box"><i class="fas fa-procedures"></i></div>
-                    <h6 class="fw-bold mb-2">Patient Care</h6>
-                    <p class="text-muted small mb-0">Access test results, book appointments, and view invoices.</p>
+        
+        <div class="col-md-3">
+            <div class="feature-card">
+                <div class="feature-icon bg-success bg-opacity-10 text-success">
+                    <i class="fas fa-user-injured"></i>
                 </div>
-            </a>
+                <h3>For Patients</h3>
+                <p>Book appointments, access medical records, and manage your healthcare journey</p>
+            </div>
         </div>
-
-        <div class="col-md-6 col-lg">
-            <a href="{% url 'pharmacy_dashboard' %}" class="portal-link">
-                <div class="card portal-card h-100 p-4 border-0">
-                    <div class="icon-box"><i class="fas fa-pills"></i></div>
-                    <h6 class="fw-bold mb-2">Pharmacy</h6>
-                    <p class="text-muted small mb-0">Track inventory and automate medication dispensing alerts.</p>
+        
+        <div class="col-md-3">
+            <div class="feature-card">
+                <div class="feature-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="fas fa-cash-register"></i>
                 </div>
-            </a>
+                <h3>For Cashiers</h3>
+                <p>Process payments, manage billing, and handle financial transactions seamlessly</p>
+            </div>
         </div>
-
-        <div class="col-md-6 col-lg">
-            <a href="{% url 'lab_dashboard' %}" class="portal-link">
-                <div class="card portal-card h-100 p-4 border-0">
-                    <div class="icon-box"><i class="fas fa-microscope"></i></div>
-                    <h6 class="fw-bold mb-2">Laboratory</h6>
-                    <p class="text-muted small mb-0">Process diagnostic requests and secure result uploads.</p>
+        
+        <div class="col-md-3">
+            <div class="feature-card">
+                <div class="feature-icon bg-danger bg-opacity-10 text-danger">
+                    <i class="fas fa-chart-line"></i>
                 </div>
-            </a>
+                <h3>For Managers</h3>
+                <p>Monitor operations, access analytics, and generate comprehensive reports</p>
+            </div>
         </div>
+    </div>
+</div>
 
-        <div class="col-md-6 col-lg">
-            <a href="{% url 'cashier_dashboard' %}" class="portal-link">
-                <div class="card portal-card h-100 p-4 border-0">
-                    <div class="icon-box"><i class="fas fa-wallet"></i></div>
-                    <h6 class="fw-bold mb-2">Billing</h6>
-                    <p class="text-muted small mb-0">Financial tracking with secure payment gateways.</p>
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number">50+</span>
+                    <span class="stat-label">Expert Doctors</span>
                 </div>
-            </a>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number">100+</span>
+                    <span class="stat-label">Medical Staff</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number">10K+</span>
+                    <span class="stat-label">Patients Served</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">Emergency Care</span>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
+<!-- Key Features Section -->
+<div class="container my-5 py-5">
+    <div class="text-center mb-5">
+        <h2 class="section-title">Key Features</h2>
+        <p class="section-subtitle">Everything you need to manage your healthcare facility</p>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="service-item">
+                <h5>
+                    <i class="fas fa-calendar-check text-primary me-2"></i>
+                    Appointment Management
+                </h5>
+                <p>Easy scheduling and tracking of patient appointments with automated reminders</p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="service-item">
+                <h5>
+                    <i class="fas fa-file-medical text-success me-2"></i>
+                    Electronic Health Records
+                </h5>
+                <p>Secure digital storage and instant access to complete medical histories</p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="service-item">
+                <h5>
+                    <i class="fas fa-credit-card text-warning me-2"></i>
+                    Payment Integration
+                </h5>
+                <p>Seamless payment processing with Paystack and multiple payment options</p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="service-item">
+                <h5>
+                    <i class="fas fa-prescription text-info me-2"></i>
+                    Prescription Management
+                </h5>
+                <p>Digital prescription creation, tracking, and pharmacy integration</p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="service-item">
+                <h5>
+                    <i class="fas fa-flask text-danger me-2"></i>
+                    Laboratory Integration
+                </h5>
+                <p>Automated lab request processing and result management</p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="service-item">
+                <h5>
+                    <i class="fas fa-chart-bar text-secondary me-2"></i>
+                    Analytics & Reports
+                </h5>
+                <p>Comprehensive reporting and data analytics for informed decision-making</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="container">
+    <section class="cta-section text-center">
+        <div class="container">
+            <h2>Ready to Transform Your Healthcare?</h2>
+            <p>Join thousands of healthcare providers who trust HMS Core</p>
+            <div class="d-flex justify-content-center flex-wrap gap-3">
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'register' %}" class="btn-hero btn-hero-primary">
+                        <i class="fas fa-user-plus me-2"></i> Get Started Today
+                    </a>
+                    <a href="{% url 'contact' %}" class="btn-hero btn-hero-outline">
+                        <i class="fas fa-envelope me-2"></i> Contact Us
+                    </a>
+                {% else %}
+                    <a href="{% url 'dashboard' %}" class="btn-hero btn-hero-primary">
+                        <i class="fas fa-tachometer-alt me-2"></i> Go to Dashboard
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
 {% endblock %}

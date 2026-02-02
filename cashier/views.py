@@ -15,6 +15,13 @@ from xhtml2pdf import pisa
 from .models import Bill, Payment
 from .forms import BillForm, PaymentForm
 
+
+
+
+def is_cashier(user):
+    return user.is_authenticated and (user.role == 'cashier' or user.role == 'manager')
+
+
 @login_required
 def cashier_dashboard(request):
     """Unified Cashier Dashboard with Stats, Lab Queue, and Pharmacy Queue"""
@@ -263,5 +270,48 @@ def mark_prescription_paid(request, prescription_id):
         messages.success(request, f"Payment recorded for {prescription.medication_name}.")
         
     return redirect('cashier_dashboard')
+
+
+
+@login_required
+def manager_analytics(request):
+    if request.user.role != 'manager':
+        return redirect('dashboard')
+
+    # 1. Revenue by Department (Last 30 Days)
+    thirty_days_ago = timezone.now() - timedelta(days=30)
+    
+    lab_rev = Payment.objects.filter(
+        lab_request__isnull=False, status='success', transaction_date__gte=thirty_days_ago
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    pharmacy_rev = Payment.objects.filter(
+        payment_reference__startswith='PHARM', status='success', transaction_date__gte=thirty_days_ago
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    general_rev = Payment.objects.filter(
+        bill__isnull=False, status='success', transaction_date__gte=thirty_days_ago
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    # 2. Daily Revenue Trend (Last 7 Days)
+    days = []
+    revenue_trend = []
+    for i in range(6, -1, -1):
+        date = timezone.now().date() - timedelta(days=i)
+        daily_sum = Payment.objects.filter(
+            transaction_date__date=date, status='success'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        days.append(date.strftime('%a')) # 'Mon', 'Tue', etc.
+        revenue_trend.append(float(daily_sum))
+
+    context = {
+        'lab_rev': float(lab_rev),
+        'pharmacy_rev': float(pharmacy_rev),
+        'general_rev': float(general_rev),
+        'days': json.dumps(days),
+        'revenue_trend': json.dumps(revenue_trend),
+    }
+    return render(request, 'cashier/manager_analytics.html', context)
+
 
 

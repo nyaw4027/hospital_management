@@ -1,0 +1,47 @@
+{% extends 'shared/base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Pharmacy Audit Trail</h2>
+        <form class="d-flex gap-2" method="GET">
+            <input type="text" name="q" class="form-control rounded-pill" placeholder="Search patient, drug, or staff..." value="{{ request.GET.q }}">
+            <button type="submit" class="btn btn-primary rounded-pill px-4">Search</button>
+        </form>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Date & Time</th>
+                        <th>Pharmacist</th>
+                        <th>Patient</th>
+                        <th>Medication</th>
+                        <th>Qty</th>
+                        <th class="pe-4">Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold">{{ log.timestamp|date:"d M, Y" }}</div>
+                            <small class="text-muted">{{ log.timestamp|time:"H:i" }}</small>
+                        </td>
+                        <td>{{ log.pharmacist.get_full_name|default:log.pharmacist.username }}</td>
+                        <td>{{ log.patient_name }}</td>
+                        <td><span class="badge bg-info-subtle text-info border border-info-subtle">{{ log.medication_name }}</span></td>
+                        <td><strong>{{ log.quantity_dispensed }}</strong></td>
+                        <td class="pe-4 small text-muted">{{ log.notes }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center py-5">No audit records found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

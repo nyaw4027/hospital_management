@@ -1,187 +1,370 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}HMS Core | Clinical Excellence{% endblock %}</title>
+    <meta name="description" content="HMS Core - Complete Hospital Management System">
+    <meta name="author" content="HMS Core Team">
+    <title>{% block title %}HMS Core - Hospital Management System{% endblock %}</title>
+    
     {% load static %}
     
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5.3.0 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome 6.4.0 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
     <style>
-        /* --- DYNAMIC THEME VARIABLES --- */
         :root {
-            --hms-primary: #0d6efd;
-            --hms-soft-bg: #f8fafc;
-            --hms-surface: #ffffff;
-            --hms-text: #1e293b;
-            --hms-text-muted: #64748b;
-            --hms-border: rgba(0,0,0,0.05);
-            --hms-nav-bg: rgba(255, 255, 255, 0.9);
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #0dcaf0;
+            --dark-color: #212529;
+            --light-color: #f8f9fa;
+            --footer-bg: #0a2357;
+            --accent-color: #00d4ff;
         }
-
-        [data-theme="dark"] {
-            --hms-soft-bg: #0f172a;       /* Deep Navy */
-            --hms-surface: #1e293b;       /* Lighter Navy */
-            --hms-text: #f8fafc;          /* Off White */
-            --hms-text-muted: #94a3b8;
-            --hms-border: rgba(255,255,255,0.1);
-            --hms-nav-bg: rgba(30, 41, 59, 0.9);
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-
+        
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--hms-soft-bg);
-            color: var(--hms-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--light-color);
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            color: #333;
+            line-height: 1.6;
         }
-
-        /* --- UI COMPONENT UPDATES --- */
-        .navbar-custom {
-            background: var(--hms-nav-bg) !important;
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-bottom: 1px solid var(--hms-border);
-            padding: 0.8rem 0;
-        }
-
-        .card, .dropdown-menu {
-            background-color: var(--hms-surface) !important;
-            border: 1px solid var(--hms-border) !important;
-            color: var(--hms-text) !important;
-        }
-
-        .text-muted { color: var(--hms-text-muted) !important; }
         
-        .bg-light { background-color: var(--hms-soft-bg) !important; }
-
+        main {
+            flex: 1;
+        }
+        
+        /* Navbar Styles */
+        .navbar {
+            box-shadow: 0 2px 8px rgba(0,0,0,.1);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;
+            padding: 1rem 0;
+        }
+        
         .navbar-brand {
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            color: var(--hms-primary) !important;
+            font-weight: 700;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            color: white !important;
+            transition: transform 0.3s ease;
         }
-
-        .nav-link {
-            font-weight: 600;
-            color: var(--hms-text-muted) !important;
-            padding: 0.5rem 1.2rem !important;
+        
+        .navbar-brand:hover {
+            transform: scale(1.05);
         }
-
-        .nav-link:hover, .nav-link.active {
-            color: var(--hms-primary) !important;
+        
+        .navbar-brand i {
+            font-size: 1.8rem;
+            margin-right: 0.5rem;
+            color: var(--accent-color);
         }
-
-        .user-dropdown-toggle {
-            background: var(--hms-surface);
-            border: 1px solid var(--hms-border);
-            padding: 6px 16px;
-            border-radius: 50px;
-            color: var(--hms-text) !important;
-        }
-
-        .dropdown-item {
-            color: var(--hms-text);
+        
+        .navbar-nav .nav-link {
+            color: rgba(255,255,255,0.9) !important;
             font-weight: 500;
-        }
-
-        .dropdown-item:hover {
-            background-color: rgba(13, 110, 253, 0.1);
-            color: var(--hms-primary);
-        }
-
-        .inquiry-badge {
-            background: #ef4444;
-            color: white;
-            font-size: 10px;
-            padding: 3px 7px;
-            border-radius: 50px;
+            padding: 0.5rem 1rem !important;
+            transition: all 0.3s ease;
             position: relative;
-            top: -10px;
-            left: -5px;
-            border: 2px solid var(--hms-surface);
         }
-
-        footer {
-            background-color: var(--hms-surface) !important;
-            border-top: 1px solid var(--hms-border) !important;
+        
+        .navbar-nav .nav-link:hover {
+            color: var(--accent-color) !important;
+            transform: translateY(-2px);
         }
-
-        main { flex: 1; }
+        
+        .navbar-nav .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--accent-color);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        
+        .navbar-nav .nav-link:hover::after {
+            width: 80%;
+        }
+        
+        /* Dropdown Menu */
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 8px 24px rgba(0,0,0,.15);
+            border-radius: 12px;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+        }
+        
+        .dropdown-item {
+            padding: 0.7rem 1.5rem;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            margin: 0.25rem 0;
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--light-color);
+            color: var(--primary-color);
+            padding-left: 2rem;
+        }
+        
+        .dropdown-item i {
+            width: 20px;
+            margin-right: 0.5rem;
+        }
+        
+        /* Alert Messages */
+        .alert {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+            padding: 1rem 1.5rem;
+            animation: slideDown 0.4s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .alert i {
+            font-size: 1.2rem;
+            vertical-align: middle;
+        }
+        
+        /* Footer Styles */
+        .custom-footer {
+            background: linear-gradient(135deg, var(--footer-bg) 0%, #0d1b3a 100%);
+            color: #ffffff;
+            margin-top: auto;
+        }
+        
+        .footer-link {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            display: block;
+            padding: 0.3rem 0;
+        }
+        
+        .footer-link:hover {
+            color: var(--accent-color);
+            padding-left: 8px;
+        }
+        
+        .social-circle {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .social-circle:hover {
+            background: var(--accent-color);
+            color: var(--footer-bg);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+        }
+        
+        .footer-heading {
+            color: var(--accent-color);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1.5px;
+            margin-bottom: 1rem;
+        }
+        
+        .gps-badge {
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px dashed var(--accent-color);
+            color: var(--accent-color);
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: inline-block;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        /* Scroll to Top Button */
+        #scrollTopBtn {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 99;
+            border: none;
+            outline: none;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+            color: white;
+            cursor: pointer;
+            padding: 15px;
+            border-radius: 50%;
+            font-size: 18px;
+            width: 50px;
+            height: 50px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.2);
+            transition: all 0.3s ease;
+        }
+        
+        #scrollTopBtn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,.3);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+            
+            .navbar-nav .nav-link {
+                padding: 0.5rem 0 !important;
+            }
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
     </style>
-
-    <script>
-        (function() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-        })();
-    </script>
-
+    
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-
-    <nav class="navbar navbar-expand-lg navbar-light navbar-custom sticky-top">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
-                <div class="bg-primary text-white p-2 rounded-3 me-2 d-flex align-items-center shadow-sm">
-                    <i class="fas fa-heartbeat fs-5"></i>
-                </div>
-                <span>HMS<span class="fw-light">CORE</span></span>
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-hospital-symbol"></i>
+                HMS Core
             </a>
             
-            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <!-- Mobile Toggle Button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-
+            
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
-                    
+                <!-- Main Navigation -->
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">
+                            <i class="fas fa-home me-1"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'about' %}">
+                            <i class="fas fa-info-circle me-1"></i> About
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'services' %}">
+                            <i class="fas fa-stethoscope me-1"></i> Services
+                        </a>
+                    </li>
+
+                    {% if user.role == 'pharmacist' %}
+                    <li class="nav-item">
+                         <a class="nav-link" href="{% url 'pharmacy_dashboard' %}">Pharmacy Queue</a>
+                    </li>
+                    {% endif %} 
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'contact' %}">
+                            <i class="fas fa-envelope me-1"></i> Contact
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Auth Navigation -->
+                <ul class="navbar-nav ms-auto align-items-lg-center">
                     {% if user.is_authenticated %}
-                        {% if user.role == 'manager' %}
-                        <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center" href="{% url 'manage_inquiries' %}">
-                                Inquiries <span class="inquiry-badge">3</span>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle me-1"></i>
+                                {{ user.get_full_name|default:user.username }}
                             </a>
-                        </li>
-                        {% endif %}
-
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'manager_dashboard' %}">
-                                <i class="fas fa-columns me-1 opacity-75"></i> Dashboard
-                            </a>
-                        </li>
-
-                        <li class="nav-item dropdown ms-lg-2">
-                            <a class="nav-link dropdown-toggle user-dropdown-toggle d-flex align-items-center" href="profile" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user-circle fs-5 me-2 text-primary"></i>
-                                <span class="fw-bold">{{ user.username|title }}</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm animate slideIn" aria-labelledby="profileDropdown">
-                                <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="fas fa-user-edit me-2 opacity-50"></i> My Profile</a></li>
-                                <li><a class="dropdown-item" href="{% url 'settings' %}"><i class="fas fa-cog me-2 opacity-50"></i> Settings</a></li>
-                                <li><hr class="dropdown-divider opacity-50"></li>
-                                <li class="px-2">
-                                    <form action="{% url 'logout' %}" method="post">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100 rounded-pill">
-                                            <i class="fas fa-power-off me-2"></i>Logout
-                                        </button>
-                                    </form>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'dashboard' %}">
+                                        <i class="fas fa-tachometer-alt text-primary"></i> Dashboard
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'profile' %}">
+                                        <i class="fas fa-user text-info"></i> Profile
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                                        <i class="fas fa-sign-out-alt"></i> Logout
+                                    </a>
                                 </li>
                             </ul>
                         </li>
-
                     {% else %}
-                       
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i> Login
+                            </a>
+                        </li>
                         <li class="nav-item ms-lg-2">
-                            <a class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" href="{% url 'register' %}">
-                                Join Us
+                            <a class="nav-link btn btn-primary px-4 rounded-pill" href="{% url 'register' %}">
+                                <i class="fas fa-user-plus me-1"></i> Register
                             </a>
                         </li>
                     {% endif %}
@@ -190,49 +373,165 @@
         </div>
     </nav>
 
+    <!-- Messages/Alerts -->
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {% if message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                    {% elif message.tags == 'success' %}
+                        <i class="fas fa-check-circle me-2"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% elif message.tags == 'info' %}
+                        <i class="fas fa-info-circle me-2"></i>
+                    {% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
     <main>
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="py-4 mt-auto">
-        <div class="container text-center text-md-start">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <p class="text-muted small mb-0">© 2026 <strong>HMS Core</strong>. A Modern Clinical Solution.</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <div class="d-flex gap-3 justify-content-center justify-content-md-end mt-3 mt-md-0">
-                        <a href="#" class="text-muted"><i class="fab fa-linkedin fs-5"></i></a>
-                        <a href="#" class="text-muted"><i class="fab fa-twitter fs-5"></i></a>
-                        <a href="#" class="text-muted"><i class="fab fa-whatsapp fs-5"></i></a>
-                        <a href="#" class="text-muted"><i class="fab fa-facebook fs-5"></i></a>
+    <!-- Footer -->
+    <footer class="custom-footer pt-5 pb-4 mt-5">
+        <div class="container">
+            <div class="row g-4">
+                <!-- About Section -->
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-hospital-symbol me-2" style="color: var(--accent-color);"></i>
+                        HMS Core
+                    </h5>
+                    <p class="small opacity-75">
+                        Leading the future of digital healthcare with precision, compassion, and innovation.
+                    </p>
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="#" class="social-circle" aria-label="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-circle" aria-label="LinkedIn">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="#" class="social-circle" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-circle" aria-label="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
                     </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="col-lg-2 col-md-6 offset-lg-1">
+                    <h6 class="footer-heading">Company</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'about' %}" class="footer-link">About Us</a></li>
+                        <li><a href="{% url 'services' %}" class="footer-link">Services</a></li>
+                        <li><a href="{% url 'contact' %}" class="footer-link">Contact</a></li>
+                        <li><a href="#" class="footer-link">Careers</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="footer-heading">Get In Touch</h6>
+                    <p class="small mb-2">
+                        <i class="fas fa-phone-alt me-2" style="color: var(--accent-color);"></i> 
+                        +233 (0) 50 000 0000
+                    </p>
+                    <p class="small mb-2">
+                        <i class="fas fa-envelope me-2" style="color: var(--accent-color);"></i> 
+                        help@hmscore.com
+                    </p>
+                    <p class="small mb-0">
+                        <i class="fas fa-clock me-2" style="color: var(--accent-color);"></i> 
+                        24/7 Support Available
+                    </p>
+                </div>
+
+                <!-- Location -->
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="footer-heading">Our Location</h6>
+                    <p class="small mb-2">
+                        <i class="fas fa-map-marker-alt me-2" style="color: var(--accent-color);"></i> 
+                        42 Medical Lane, North Ridge<br>
+                        <span class="ms-4">Accra, Ghana</span>
+                    </p>
+                    <div class="mb-3">
+                        <span class="small d-block mb-2 opacity-75">GPS Digital Address:</span>
+                        <div class="gps-badge">GA-492-1029</div>
+                    </div>
+                    <a href="https://www.google.com/maps/search/?api=1&query=Accra+Ghana" 
+                       target="_blank" 
+                       class="btn btn-sm btn-outline-info rounded-pill">
+                        <i class="fas fa-directions me-1"></i> Get Directions
+                    </a>
+                </div>
+            </div>
+
+            <hr class="mt-5 mb-4 border-light opacity-10">
+            
+            <!-- Copyright -->
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="small opacity-50 mb-0">
+                        &copy; 2026 HMS Core Hospital Management. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="small opacity-50 mb-0">
+                        Designed for Clinical Excellence
+                    </p>
                 </div>
             </div>
         </div>
     </footer>
 
+    <!-- Scroll to Top Button -->
+    <button onclick="scrollToTop()" id="scrollTopBtn" title="Go to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- Custom Scripts -->
     <script>
-        const htmlElement = document.documentElement;
+        // Scroll to Top Functionality
+        let scrollTopBtn = document.getElementById("scrollTopBtn");
         
-        // This function will be called by the toggle in settings.html
-        window.addEventListener('load', () => {
-            const themeToggle = document.getElementById('nightModeToggle');
-            if (themeToggle) {
-                // Sync toggle position with saved theme
-                themeToggle.checked = htmlElement.getAttribute('data-theme') === 'dark';
-
-                themeToggle.addEventListener('change', () => {
-                    const newTheme = themeToggle.checked ? 'dark' : 'light';
-                    htmlElement.setAttribute('data-theme', newTheme);
-                    localStorage.setItem('theme', newTheme);
-                });
+        window.onscroll = function() {
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                scrollTopBtn.style.display = "block";
+            } else {
+                scrollTopBtn.style.display = "none";
             }
-        });
+        };
+        
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+        
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            let alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                let bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
     </script>
-
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

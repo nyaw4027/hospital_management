@@ -1,119 +1,114 @@
 import io
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.utils import timezone
 from django.http import FileResponse
 from reportlab.pdfgen import canvas
+from django.db.models import Q
 
-# Import models from their respective apps
-from .models import Doctor, Prescription, PrescriptionItem, LabRequest
+# Import models
+from .models import Doctor, MedicalRecord, Prescription, PrescriptionItem, LabRequest
 from patients.models import Patient
 from appointments.models import Appointment
-from .models import MedicalRecord, Prescription, PrescriptionItem, LabRequest
 from .forms import MedicalRecordForm, PrescriptionForm, PrescriptionItemFormSet
 
-# --- HELPER ---
+# --- ACCESS CONTROL ---
 def is_doctor(user):
-    """Checks if the logged-in user has the doctor role."""
     return hasattr(user, 'role') and user.role == 'doctor'
+
+# Use this decorator to automatically protect views
+doctor_required = user_passes_test(is_doctor, login_url='home')
 
 # --- DASHBOARD ---
 
+# doctors/views.py
+
+def is_doctor(user):
+    # This checks if the user is logged in AND has the role 'doctor'
+    return user.is_authenticated and hasattr(user, 'role') and user.role == 'doctor'
+
 @login_required
+@user_passes_test(is_doctor, login_url='login') # The Ultimate Gatekeeper
 def doctor_dashboard(request):
-    """The Doctor's Command Center - filters for patients ready from Triage."""
-    if not is_doctor(request.user):
-        messages.error(request, 'Access denied. Doctor role required.')
-        return redirect('dashboard')
-    
-    # Ensure doctor profile exists
+    """
+    Only a user with role=='doctor' will ever see the code below.
+    Everyone else is redirected before this function even runs.
+    """
+    # Ensure the profile exists
     doctor_profile, _ = Doctor.objects.get_or_create(
         user=request.user,
         defaults={'doctor_id': f"DOC{request.user.id:05d}"}
     )
 
-    # QUEUE LOGIC: Only show patients whose vitals were captured by nurses
     ready_patients = Appointment.objects.filter(
         doctor=request.user,
         status='ready'
     ).select_related('patient__user').order_by('appointment_time')
 
-    active_consultations = Appointment.objects.filter(
-        doctor=request.user, 
-        status='consulting'
-    ).select_related('patient__user')
-
     context = {
         'doctor': doctor_profile,
         'ready_patients': ready_patients,
-        'active_consultations': active_consultations,
         'total_completed': Appointment.objects.filter(doctor=request.user, status='completed').count(),
     }
     return render(request, 'doctors/dashboard.html', context)
 
-# --- CONSULTATION SESSION (THE BRAIN) ---
+# --- CONSULTATION SESSION ---
 
 @login_required
+@doctor_required
 def consultation_session(request, appointment_id):
-    if not is_doctor(request.user):
-        return redirect('dashboard')
-    
     appointment = get_object_or_404(Appointment, id=appointment_id, doctor=request.user)
-    doctor_profile = get_object_or_404(Doctor, user=request.user)
     patient = appointment.patient
+    doctor_profile = get_object_or_404(Doctor, user=request.user)
     
+    # Change status to 'consulting' as soon as the doctor opens the page
     if appointment.status == 'ready':
         appointment.status = 'consulting'
         appointment.save()
+    
+    # Get latest vitals for the sidebar
+    latest_vitals = Vitals.objects.filter(patient=patient).order_by('-recorded_at').first()
     
     if request.method == 'POST':
         form = MedicalRecordForm(request.POST)
         prescription_form = PrescriptionForm(request.POST)
         formset = PrescriptionItemFormSet(request.POST)
         
-        # Validate ALL forms before saving anything
-        forms_are_valid = form.is_valid()
-        if request.POST.get('prescribed_medicines'):
-            forms_are_valid = forms_are_valid and prescription_form.is_valid() and formset.is_valid()
-
-        if forms_are_valid:
-            # 1. Save Record
+        if form.is_valid():
+            # 1. Save Medical Record
             record = form.save(commit=False)
             record.patient = patient
-            record.doctor = request.user # Or doctor_profile, check your model!
+            record.doctor = doctor_profile
             record.appointment = appointment
             record.save()
             
-            # 2. Lab Trigger
+            # 2. Handle Lab Requests (If tests are typed in the ordered_tests field)
             if record.ordered_tests:
                 LabRequest.objects.create(
                     medical_record=record,
-                    test_name=f"Clinic Panel: {record.diagnosis[:50]}",
+                    patient=patient,
+                    test_name=f"Consultation Panel: {record.diagnosis[:50]}",
                     status='pending'
                 )
 
-
-            latest_vitals = Vitals.objects.filter(patient=patient).order_by('-recorded_at').first()
-
-
-
-            # 3. Prescription Logic
-            if request.POST.get('prescribed_medicines'):
-                prescription = prescription_form.save(commit=False)
-                prescription.medical_record = record
-                prescription.patient = patient
-                prescription.doctor_profile = doctor_profile
-                prescription.save()
-                
-                formset.instance = prescription
-                formset.save()
+            # 3. Handle Prescription (Only if items were added)
+            if request.POST.get('has_prescription') == 'true':
+                if prescription_form.is_valid() and formset.is_valid():
+                    rx = prescription_form.save(commit=False)
+                    rx.medical_record = record
+                    rx.patient = patient
+                    rx.doctor_profile = doctor_profile
+                    rx.save()
+                    
+                    formset.instance = rx
+                    formset.save()
             
-            # 4. Finalize
+            # 4. Finalize Appointment
             appointment.status = 'completed'
             appointment.save()
             
-            messages.success(request, f"Visit for {patient.user.get_full_name()} finalized.")
+            messages.success(request, f"Consultation for {patient.user.get_full_name()} saved successfully.")
             return redirect('doctor_dashboard')
     else:
         form = MedicalRecordForm()
@@ -126,124 +121,115 @@ def consultation_session(request, appointment_id):
         'formset': formset,
         'appointment': appointment,
         'patient': patient,
+        'vitals': latest_vitals,
         'history': MedicalRecord.objects.filter(patient=patient).order_by('-visit_date')[:5]
     }
     return render(request, 'doctors/consultation.html', context)
 
-# --- PATIENT DATA & PDF ---
+# --- DATA MANAGEMENT & PDF ---
 
 @login_required
+@doctor_required
 def generate_prescription_pdf(request, prescription_id):
-    """Generates professional PDF for external use or printing."""
-    prescription = get_object_or_404(Prescription, id=prescription_id)
-    items = prescription.items.all()
+    rx = get_object_or_404(Prescription, id=prescription_id)
+    items = rx.items.all()
     
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer)
     
+    # PDF Header
     p.setFont("Helvetica-Bold", 16)
-    p.drawString(50, 800, "OFFICIAL MEDICAL PRESCRIPTION")
+    p.drawString(50, 800, "HMS CORE - MEDICAL PRESCRIPTION")
     p.setFont("Helvetica", 11)
-    p.drawString(50, 775, f"Patient: {prescription.patient.user.get_full_name()}")
-    p.drawString(50, 760, f"Doctor: Dr. {prescription.doctor_profile.user.get_full_name()}")
-    p.drawString(450, 775, f"Date: {prescription.created_at.strftime('%d/%m/%Y')}")
+    p.drawString(50, 775, f"Patient: {rx.patient.user.get_full_name()}")
+    p.drawString(50, 760, f"Doctor: Dr. {rx.doctor_profile.user.last_name}")
+    p.drawString(450, 775, f"Date: {rx.created_at.strftime('%d/%m/%Y')}")
     p.line(50, 750, 550, 750)
     
+    # Table Header
     y = 720
     p.setFont("Helvetica-Bold", 12)
     p.drawString(50, y, "Medication")
-    p.drawString(300, y, "Dosage/Freq")
+    p.drawString(250, y, "Dosage")
+    p.drawString(400, y, "Frequency")
     p.drawString(500, y, "Qty")
     
+    # Table Content
     p.setFont("Helvetica", 11)
     for item in items:
         y -= 25
-        p.drawString(50, y, item.medicine_name)
-        p.drawString(300, y, f"{item.dosage} ({item.frequency})")
+        p.drawString(50, y, item.medicine_name[:30])
+        p.drawString(250, y, item.dosage)
+        p.drawString(400, y, item.frequency)
         p.drawString(500, y, str(item.quantity))
-    
+        
     p.showPage()
     p.save()
     buffer.seek(0)
-    return FileResponse(buffer, as_attachment=True, filename=f'Rx_{prescription.id}.pdf')
+    return FileResponse(buffer, as_attachment=True, filename=f'Prescription_{rx.id}.pdf')
 
 @login_required
+@doctor_required
 def patient_detail(request, patient_id):
+    """Full Electronic Health Record View."""
     patient = get_object_or_404(Patient, id=patient_id)
-    history = MedicalRecord.objects.filter(patient=patient).order_by('-visit_date')
-    return render(request, 'doctors/patient_detail.html', {'patient': patient, 'history': history})
-
-@login_required
-def doctor_patients(request):
-    patients = Patient.objects.filter(appointments__doctor=request.user).distinct()
-    return render(request, 'doctors/patients_list.html', {'patients': patients})
-
-@login_required
-def update_appointment_status(request, appointment_id):
-    appointment = get_object_or_404(Appointment, id=appointment_id, doctor=request.user)
-    if request.method == 'POST':
-        status = request.POST.get('status')
-        if status in dict(Appointment.STATUS_CHOICES):
-            appointment.status = status
-            appointment.save()
-            messages.success(request, "Status updated.")
-    return redirect('doctor_dashboard')
-
-
-@login_required
-def doctor_appointments(request):
-    """View to list all historical and upcoming appointments for the doctor."""
-    if not is_doctor(request.user):
-        return redirect('dashboard')
-        
-    appointments = Appointment.objects.filter(
-        doctor=request.user
-    ).select_related('patient__user').order_by('-appointment_date', '-appointment_time')
-    
-    return render(request, 'doctors/appointments.html', {'appointments': appointments})
-
-
-@login_required
-def complete_consultation(request, visit_id):
-    if request.method == 'POST':
-        # 1. Send to Pharmacy
-        med_name = request.POST.get('medication')
-        if med_name:
-            Prescription.objects.create(
-                patient_id=request.POST.get('patient_id'),
-                doctor=request.user.doctor_profile,
-                medication_name=med_name,
-                status='pending' # Goes to Cashier first
-            )
-
-        # 2. Send to Lab
-        test_id = request.POST.get('test_id')
-        if test_id:
-            LabRequest.objects.create(
-                patient_id=request.POST.get('patient_id'),
-                test_type_id=test_id,
-                status='pending' # Goes to Cashier first
-            )
-            
-        messages.success(request, "Consultation completed. Orders sent to Pharmacy & Lab.")
-        return redirect('doctor_dashboard')
-
-
-@login_required
-def patient_ehr_profile(request, patient_id):
-    patient = get_object_or_404(Patient, id=patient_id)
-    
-    # Fetch all medical history for this patient
-    prescriptions = Prescription.objects.filter(patient=patient).order_by('-created_at')
-    lab_results = LabRequest.objects.filter(patient=patient, status='completed').order_by('-updated_at')
-    
-    # Calculate some quick vitals or stats if available
     context = {
         'patient': patient,
-        'prescriptions': prescriptions,
-        'lab_results': lab_results,
+        'records': MedicalRecord.objects.filter(patient=patient).order_by('-visit_date'),
+        'prescriptions': Prescription.objects.filter(patient=patient).order_by('-created_at'),
+        'lab_results': LabRequest.objects.filter(patient=patient, status='completed').order_by('-updated_at'),
+        'vitals_history': Vitals.objects.filter(patient=patient).order_by('-recorded_at')
     }
     return render(request, 'doctors/patient_ehr.html', context)
+
+@login_required
+@doctor_required
+def doctor_appointments(request):
+    """Historical and future appointments."""
+    appointments = Appointment.objects.filter(doctor=request.user).select_related('patient__user').order_by('-appointment_date')
+    return render(request, 'doctors/appointments_list.html', {'appointments': appointments})
+
+
+
+
+
+@login_required
+@doctor_required
+def doctor_patients(request):
+    query = request.GET.get('q')
+    if query:
+        # Search by name, patient_id, or phone number
+        patients = Patient.objects.filter(
+            Q(user__first_name__icontains=query) | 
+            Q(user__last_name__icontains=query) |
+            Q(patient_id__icontains=query) |
+            Q(phone_number__icontains=query)
+        ).distinct()
+    else:
+        # Show patients the doctor has recently interacted with
+        patients = Patient.objects.filter(appointments__doctor=request.user).distinct()[:20]
+
+    return render(request, 'doctors/patients_list.html', {
+        'patients': patients,
+        'query': query
+    })
+
+
+@login_required
+@doctor_required
+def update_appointment_status(request, appointment_id):
+    """Helper view to update appointment status from the dashboard."""
+    appointment = get_object_or_404(Appointment, id=appointment_id, doctor=request.user)
+    
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        # Only allow valid status transitions
+        if new_status in ['ready', 'consulting', 'completed', 'cancelled']:
+            appointment.status = new_status
+            appointment.save()
+            messages.success(request, f"Appointment status updated to {new_status}.")
+    
+    return redirect('doctor_dashboard')
 
 
 

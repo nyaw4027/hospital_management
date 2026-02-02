@@ -1,0 +1,54 @@
+{% extends 'shared/base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="fw-bold mb-4">Hospital Performance Analytics</h2>
+
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-bold mb-3">Revenue by Department</h5>
+                <canvas id="deptChart"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-bold mb-3">7-Day Revenue Trend (GHS)</h5>
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Pie Chart Logic
+    new Chart(document.getElementById('deptChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Labs', 'Pharmacy', 'General'],
+            datasets: [{
+                data: [{{ lab_rev }}, {{ pharmacy_rev }}, {{ general_rev }}],
+                backgroundColor: ['#0dcaf0', '#198754', '#0d6efd']
+            }]
+        }
+    });
+
+    // Line Chart Logic
+    new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels: {{ days|safe }},
+            datasets: [{
+                label: 'Daily Revenue',
+                data: {{ revenue_trend|safe }},
+                borderColor: '#198754',
+                tension: 0.3,
+                fill: true,
+                backgroundColor: 'rgba(25, 135, 84, 0.1)'
+            }]
+        }
+    });
+</script>
+{% endblock %}
