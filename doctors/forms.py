@@ -1,25 +1,59 @@
 from django import forms
-from patients.models import MedicalRecord
+from .models import Prescription, PrescriptionItem, MedicalRecord
+from .models import Prescription, PrescriptionItem
+
 
 class MedicalRecordForm(forms.ModelForm):
-    """Professional medical record form for doctor consultations"""
-    
+    """
+    Captures clinical findings and triggers paperless workflows 
+    (Lab, Pharmacy, Admission) via Boolean flags.
+    """
     class Meta:
         model = MedicalRecord
-        fields = ['diagnosis', 'prescription', 'test_results', 'notes']
+        # These fields MUST exist in your patients.models.MedicalRecord
+        fields = ['diagnosis', 'clinical_notes', 'prescribed_medicines', 'ordered_tests', 'requires_admission']
         widgets = {
-            'diagnosis': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Enter primary diagnosis...'}),
-            'prescription': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Dosage, frequency, and duration...'}),
-            'test_results': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Lab results or vitals (BP, Temp, etc.)'}),
-            'notes': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Observation notes...'}),
+            'diagnosis': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Enter primary diagnosis...'}),
+            'clinical_notes': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Enter detailed clinical observations...'}),
         }
 
     def __init__(self, *args, **kwargs):
-        super(MedicalRecordForm, self).__init__(*args, **kwargs)
-        # Automatically add 'form-control' to all fields without typing it 4 times
+        super().__init__(*args, **kwargs)
+        # Dynamic Bootstrap styling
         for field_name, field in self.fields.items():
-            field.widget.attrs['class'] = 'form-control'
-            
-        # Make critical fields required at the form level
+            if isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs.update({'class': 'form-check-input'})
+            else:
+                field.widget.attrs.update({'class': 'form-control'})
+        
         self.fields['diagnosis'].required = True
-        self.fields['prescription'].required = True
+
+class PrescriptionForm(forms.ModelForm):
+    """Header for the Pharmacy order"""
+    class Meta:
+        model = Prescription
+        # Note: We use 'clinical_notes' here to stay consistent with the MedicalRecord
+        fields = ['patient', 'diagnosis', 'clinical_notes']
+        widgets = {
+            'diagnosis': forms.Textarea(attrs={'rows': 2, 'class': 'form-control', 'placeholder': 'Diagnosis for pharmacist...'}),
+            'clinical_notes': forms.Textarea(attrs={'rows': 2, 'class': 'form-control', 'placeholder': 'Special instructions...'}),
+            'patient': forms.Select(attrs={'class': 'form-control select2'}),
+        }
+
+# --- DYNAMIC PRESCRIPTION ROWS ---
+# This allows doctors to add multiple medicines in one session
+PrescriptionItemFormSet = forms.inlineformset_factory(
+    Prescription, 
+    PrescriptionItem,
+    fields=['medicine_name', 'dosage', 'frequency', 'duration', 'quantity', 'instructions'],
+    extra=1, 
+    can_delete=True,
+    widgets={
+        'medicine_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Medicine Name'}),
+        'dosage': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 500mg'}),
+        'frequency': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 2x Daily'}),
+        'duration': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '7 Days'}),
+        'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+        'instructions': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Notes (e.g. After Meals)'}),
+    }
+)

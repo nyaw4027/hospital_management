@@ -3,7 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings as django_settings
-from .models import Patient, Appointment, MedicalRecord
+from .models import Patient
+from appointments.models import Appointment
+from doctors.models import MedicalRecord
 from .forms import AppointmentForm
 from manager.models import HospitalSetting, EmailLog # Importing the global settings
 

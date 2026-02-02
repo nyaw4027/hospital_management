@@ -4,7 +4,8 @@ from django.contrib import messages
 from django.db.models import Sum, Count, Q
 from datetime import date, timedelta
 from accounts.models import User
-from patients.models import Patient, Appointment
+from patients.models import Patient
+from appointments.models import Appointment  # The new, correct path
 from doctors.models import Doctor
 from cashier.models import Bill, Payment
 from .models import Staff

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Appointment
+from appointments.models import Appointment
 from accounts.models import User
 
 class AppointmentForm(forms.ModelForm):

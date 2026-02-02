@@ -5,59 +5,66 @@
 
 {% block extra_css %}
 <style>
-    /* Hero Section with Parallax Effect */
+    /* 1. Improved Hero Section with correct viewport handling */
     .hero-wrap {
-        height: 80vh;
-        min-height: 500px;
-        background: linear-gradient(rgba(12, 30, 62, 0.8), rgba(13, 110, 253, 0.6)), 
+        height: 75vh;
+        min-height: 550px;
+        background: linear-gradient(rgba(12, 30, 62, 0.85), rgba(13, 110, 253, 0.65)), 
                     url('https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1920&q=80');
         background-size: cover;
         background-position: center;
-        background-attachment: fixed;
+        /* Fixed background can be buggy on mobile; changed to scroll for compatibility */
+        background-attachment: scroll; 
         display: flex;
         align-items: center;
         color: white;
+        margin-bottom: 0;
     }
 
     .hero-content h1 {
-        font-size: 3.5rem;
+        font-size: clamp(2.5rem, 5vw, 4rem); /* Fluid typography */
         font-weight: 800;
-        letter-spacing: -1px;
+        letter-spacing: -1.5px;
+        line-height: 1.1;
     }
 
-    /* Portal Cards - Enhanced for Interactivity */
+    /* 2. Portal Cards - Fixed Overlap & Hover */
     .portal-link {
         text-decoration: none !important;
         color: inherit;
         display: block;
+        height: 100%;
+    }
+
+    .portal-section {
+        position: relative;
+        z-index: 20;
+        margin-top: -80px; /* Controlled overlap */
     }
 
     .portal-card {
         border: none;
-        border-radius: 15px;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border-radius: 20px;
+        transition: all 0.3s ease-in-out;
         background: #ffffff;
-        margin-top: -60px; /* Overlaps hero */
-        z-index: 10;
-        cursor: pointer;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     }
 
     .portal-card:hover {
-        transform: translateY(-15px);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.12) !important;
-        background-color: #fcfcfc;
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(13, 110, 253, 0.15) !important;
     }
 
     .icon-box {
-        width: 60px;
-        height: 60px;
-        background: rgba(13, 110, 253, 0.1);
+        width: 55px;
+        height: 55px;
+        background: rgba(13, 110, 253, 0.08);
         color: #0d6efd;
-        border-radius: 12px;
+        border-radius: 15px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
+        font-size: 1.4rem;
         margin-bottom: 20px;
         transition: 0.3s;
     }
@@ -65,12 +72,13 @@
     .portal-card:hover .icon-box {
         background: #0d6efd;
         color: #fff;
+        transform: scale(1.1);
     }
 
-    /* Responsive Adjustments */
+    /* Fix for small screens */
     @media (max-width: 991.98px) {
-        .portal-card { margin-top: 20px; }
-        .hero-content h1 { font-size: 2.5rem; }
+        .portal-section { margin-top: 40px; }
+        .hero-wrap { text-align: center; height: auto; padding: 100px 0; }
     }
 </style>
 {% endblock %}
@@ -78,18 +86,20 @@
 {% block content %}
 
 <section class="hero-wrap">
-    <div class="container text-center text-lg-start">
+    <div class="container">
         <div class="row">
-            <div class="col-lg-7 hero-content">
-                <span class="badge bg-primary mb-3 px-3 py-2 text-uppercase">Trusted Healthcare Partner</span>
-                <h1>Compassionate Care <br>Powered by Innovation</h1>
-                <p class="lead opacity-90 mb-5">
+            <div class="col-lg-8 hero-content">
+                <span class="badge bg-primary mb-3 px-3 py-2 text-uppercase shadow-sm">Trusted Healthcare Partner</span>
+                <h1 class="mb-4">Compassionate Care <br>Powered by Innovation</h1>
+                <p class="lead opacity-90 mb-5 pe-lg-5">
                     Our Hospital Management System integrates every department—from clinical 
                     records to financial billing—into one seamless, secure experience.
                 </p>
                 {% if not user.is_authenticated %}
-                    <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5 rounded-pill shadow me-3">Get Started</a>
-                    <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg px-5 rounded-pill">Staff Login</a>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5 rounded-pill shadow-lg">Get Started</a>
+                        <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg px-5 rounded-pill">Staff Login</a>
+                    </div>
                 {% else %}
                     <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg px-5 rounded-pill shadow">Go to Dashboard</a>
                 {% endif %}
@@ -98,57 +108,58 @@
     </div>
 </section>
 
-<section class="container mb-5">
+<section class="container portal-section mb-5">
     <div class="row g-4 justify-content-center">
         <div class="col-md-6 col-lg">
             <a href="{% url 'doctor_dashboard' %}" class="portal-link">
-                <div class="card portal-card shadow-sm h-100 p-4">
+                <div class="card portal-card h-100 p-4 border-0">
                     <div class="icon-box"><i class="fas fa-user-md"></i></div>
-                    <h6 class="fw-bold">Doctor Portal</h6>
+                    <h6 class="fw-bold mb-2">Doctor Portal</h6>
                     <p class="text-muted small mb-0">Manage patient history, e-prescriptions, and schedules.</p>
                 </div>
             </a>
         </div>
+
         <div class="col-md-6 col-lg">
             <a href="{% url 'patient_dashboard' %}" class="portal-link">
-                <div class="card portal-card shadow-sm h-100 p-4">
+                <div class="card portal-card h-100 p-4 border-0">
                     <div class="icon-box"><i class="fas fa-procedures"></i></div>
-                    <h6 class="fw-bold">Patient Care</h6>
+                    <h6 class="fw-bold mb-2">Patient Care</h6>
                     <p class="text-muted small mb-0">Access test results, book appointments, and view invoices.</p>
                 </div>
             </a>
         </div>
+
         <div class="col-md-6 col-lg">
-           <a href="{% url 'pharmacy_dashboard' %}" class="portal-link">
-                <div class="card portal-card shadow-sm h-100 p-4">
+            <a href="{% url 'pharmacy_dashboard' %}" class="portal-link">
+                <div class="card portal-card h-100 p-4 border-0">
                     <div class="icon-box"><i class="fas fa-pills"></i></div>
-                    <h6 class="fw-bold">Pharmacy</h6>
+                    <h6 class="fw-bold mb-2">Pharmacy</h6>
                     <p class="text-muted small mb-0">Track inventory and automate medication dispensing alerts.</p>
                 </div>
             </a>
         </div>
+
         <div class="col-md-6 col-lg">
             <a href="{% url 'lab_dashboard' %}" class="portal-link">
-                <div class="card portal-card shadow-sm h-100 p-4">
+                <div class="card portal-card h-100 p-4 border-0">
                     <div class="icon-box"><i class="fas fa-microscope"></i></div>
-                    <h6 class="fw-bold">Laboratory</h6>
+                    <h6 class="fw-bold mb-2">Laboratory</h6>
                     <p class="text-muted small mb-0">Process diagnostic requests and secure result uploads.</p>
                 </div>
             </a>
         </div>
+
         <div class="col-md-6 col-lg">
             <a href="{% url 'cashier_dashboard' %}" class="portal-link">
-                <div class="card portal-card shadow-sm h-100 p-4">
+                <div class="card portal-card h-100 p-4 border-0">
                     <div class="icon-box"><i class="fas fa-wallet"></i></div>
-                    <h6 class="fw-bold">Billing</h6>
+                    <h6 class="fw-bold mb-2">Billing</h6>
                     <p class="text-muted small mb-0">Financial tracking with secure payment gateways.</p>
                 </div>
             </a>
         </div>
     </div>
 </section>
-
-<section class="py-5">
-    </section>
 
 {% endblock %}

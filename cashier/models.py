@@ -124,3 +124,28 @@ class Payment(models.Model):
     
     class Meta:
         ordering = ['-transaction_date']
+
+
+
+
+class Invoice(models.Model):
+    STATUS_CHOICES = [
+        ('unpaid', 'Unpaid'), 
+        ('paid', 'Paid'), 
+        ('partially_paid', 'Partially Paid')
+    ]
+    
+    # We use strings 'app_label.ModelName' to avoid NameErrors
+    patient = models.ForeignKey('patients.Patient', on_delete=models.CASCADE)
+    
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='unpaid')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Paperless links using strings
+    prescriptions = models.ManyToManyField('doctors.Prescription', blank=True)
+    lab_requests = models.ManyToManyField('doctors.LabRequest', blank=True)
+
+    def __str__(self):
+        # self.patient.user.get_full_name() will work once the apps are loaded
+        return f"Invoice {self.id} - {self.patient}"

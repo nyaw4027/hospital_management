@@ -1,123 +1,188 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="{{ hospital_settings.night_mode|yesno:'dark,light' }}">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}HMS Core{% endblock %}</title>
+    <title>{% block title %}HMS Core | Clinical Excellence{% endblock %}</title>
     {% load static %}
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+        /* --- DYNAMIC THEME VARIABLES --- */
         :root {
-            --medical-blue: #0a2357;
-            --medical-info: #00d4ff;
-            --medical-green: #198754;
-            --bg-light: #f8f9fa;
+            --hms-primary: #0d6efd;
+            --hms-soft-bg: #f8fafc;
+            --hms-surface: #ffffff;
+            --hms-text: #1e293b;
+            --hms-text-muted: #64748b;
+            --hms-border: rgba(0,0,0,0.05);
+            --hms-nav-bg: rgba(255, 255, 255, 0.9);
         }
 
-        /* Night Mode Overrides */
-        [data-theme='dark'] {
-            background-color: #121212 !important;
-            color: #e0e0e0 !important;
+        [data-theme="dark"] {
+            --hms-soft-bg: #0f172a;       /* Deep Navy */
+            --hms-surface: #1e293b;       /* Lighter Navy */
+            --hms-text: #f8fafc;          /* Off White */
+            --hms-text-muted: #94a3b8;
+            --hms-border: rgba(255,255,255,0.1);
+            --hms-nav-bg: rgba(30, 41, 59, 0.9);
         }
-        [data-theme='dark'] body { background-color: #121212; color: #e0e0e0; }
-        [data-theme='dark'] .card { background-color: #1e1e1e; color: white; border: 1px solid #333; }
-        [data-theme='dark'] .form-control, [data-theme='dark'] .form-select { background-color: #2d2d2d; color: white; border-color: #444; }
-        [data-theme='dark'] .list-group-item { background-color: #1e1e1e; color: #eee; border-color: #333; }
-        [data-theme='dark'] .navbar-dark { background-color: #000 !important; }
 
-        /* Global Layout */
-        body { display: flex; flex-direction: column; min-height: 100vh; font-family: 'Inter', sans-serif; background-color: var(--bg-light); transition: background 0.3s ease; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--hms-soft-bg);
+            color: var(--hms-text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* --- UI COMPONENT UPDATES --- */
+        .navbar-custom {
+            background: var(--hms-nav-bg) !important;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--hms-border);
+            padding: 0.8rem 0;
+        }
+
+        .card, .dropdown-menu {
+            background-color: var(--hms-surface) !important;
+            border: 1px solid var(--hms-border) !important;
+            color: var(--hms-text) !important;
+        }
+
+        .text-muted { color: var(--hms-text-muted) !important; }
+        
+        .bg-light { background-color: var(--hms-soft-bg) !important; }
+
+        .navbar-brand {
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--hms-primary) !important;
+        }
+
+        .nav-link {
+            font-weight: 600;
+            color: var(--hms-text-muted) !important;
+            padding: 0.5rem 1.2rem !important;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--hms-primary) !important;
+        }
+
+        .user-dropdown-toggle {
+            background: var(--hms-surface);
+            border: 1px solid var(--hms-border);
+            padding: 6px 16px;
+            border-radius: 50px;
+            color: var(--hms-text) !important;
+        }
+
+        .dropdown-item {
+            color: var(--hms-text);
+            font-weight: 500;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(13, 110, 253, 0.1);
+            color: var(--hms-primary);
+        }
+
+        .inquiry-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 3px 7px;
+            border-radius: 50px;
+            position: relative;
+            top: -10px;
+            left: -5px;
+            border: 2px solid var(--hms-surface);
+        }
+
+        footer {
+            background-color: var(--hms-surface) !important;
+            border-top: 1px solid var(--hms-border) !important;
+        }
+
         main { flex: 1; }
-
-        /* Navbar Styling */
-        .navbar { border-bottom: 3px solid var(--medical-info); }
-        .btn-dashboard { background-color: var(--medical-green) !important; color: white !important; border: none; transition: 0.3s; } 
-        .btn-login-nav { background-color: #0056b3 !important; color: white !important; border: none; transition: 0.3s; } 
-        .btn-dashboard:hover, .btn-login-nav:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        
-        /* Profile Dropdown Styling */
-        .dropdown-menu { border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); min-width: 210px; }
-        .dropdown-item { padding: 10px 20px; font-size: 0.9rem; font-weight: 500; transition: 0.2s; }
-        .dropdown-item:hover { background-color: #f0f7ff; color: #0056b3; }
-        .user-avatar { width: 35px; height: 35px; background: var(--medical-info); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-
-        /* Maintenance Banner */
-        .maintenance-banner { z-index: 9999; position: sticky; top: 0; font-size: 0.9rem; }
-
-        /* Footer */
-        .custom-footer { background-color: var(--medical-blue); color: #ffffff; }
-        .footer-link { color: rgba(255,255,255,0.7); text-decoration: none; transition: 0.3s; font-size: 0.9rem; }
-        .footer-link:hover { color: var(--medical-info); padding-left: 5px; }
-        .social-circle { width: 38px; height: 38px; background: rgba(255,255,255,0.1); display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: white; text-decoration: none; transition: 0.3s; }
-        .social-circle:hover { background: var(--medical-info); color: var(--medical-blue); transform: translateY(-3px); }
-        .footer-heading { color: var(--medical-info); font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
-        
-        /* GPS Badge */
-        .gps-badge { background: rgba(0, 212, 255, 0.1); border: 1px dashed var(--medical-info); color: var(--medical-info); padding: 5px 10px; border-radius: 8px; font-family: monospace; font-size: 0.9rem; }
     </style>
+
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
     {% block extra_css %}{% endblock %}
 </head>
 <body>
 
-    {% if hospital_settings.maintenance_mode %}
-    <div class="alert alert-warning border-0 rounded-0 mb-0 py-2 text-center shadow-sm maintenance-banner">
-        <i class="fas fa-exclamation-triangle me-2 text-dark"></i>
-        <strong class="text-dark">Maintenance Mode Active:</strong> 
-        <span class="text-dark">The public site is currently hidden from patients.</span>
-        <a href="{% url 'settings_general' %}" class="btn btn-sm btn-dark rounded-pill ms-3 px-3">Deactivate</a>
-    </div>
-    {% endif %}
-
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-light navbar-custom sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="{% url 'home' %}">
-                <i class="fas fa-hospital-symbol text-info me-2"></i>HMS Core
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+                <div class="bg-primary text-white p-2 rounded-3 me-2 d-flex align-items-center shadow-sm">
+                    <i class="fas fa-heartbeat fs-5"></i>
+                </div>
+                <span>HMS<span class="fw-light">CORE</span></span>
             </a>
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link px-3" href="{% url 'home' %}">Home</a></li>
-                    <li class="nav-item"><a class="nav-link px-3" href="{% url 'services' %}">Services</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
                     
                     {% if user.is_authenticated %}
+                        {% if user.role == 'manager' %}
                         <li class="nav-item">
-                            <a class="nav-link btn btn-dashboard px-4 rounded-pill me-lg-3 text-white" href="{% url 'dashboard' %}">
-                                <i class="fas fa-columns me-1"></i> Dashboard
+                            <a class="nav-link d-flex align-items-center" href="{% url 'manage_inquiries' %}">
+                                Inquiries <span class="inquiry-badge">3</span>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'manager_dashboard' %}">
+                                <i class="fas fa-columns me-1 opacity-75"></i> Dashboard
                             </a>
                         </li>
 
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                                <div class="user-avatar me-2">
-                                    {{ user.username|slice:":1"|upper }}
-                                </div>
-                                <span class="d-none d-lg-inline">{{ user.username|capfirst }}</span>
+                        <li class="nav-item dropdown ms-lg-2">
+                            <a class="nav-link dropdown-toggle user-dropdown-toggle d-flex align-items-center" href="profile" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle fs-5 me-2 text-primary"></i>
+                                <span class="fw-bold">{{ user.username|title }}</span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow animate slideIn">
-                                <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="fas fa-user-circle me-2"></i> My Profile</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form action="{% url 'logout' %}" method="post" class="px-2">
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm animate slideIn" aria-labelledby="profileDropdown">
+                                <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="fas fa-user-edit me-2 opacity-50"></i> My Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'settings' %}"><i class="fas fa-cog me-2 opacity-50"></i> Settings</a></li>
+                                <li><hr class="dropdown-divider opacity-50"></li>
+                                <li class="px-2">
+                                    <form action="{% url 'logout' %}" method="post">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100 rounded-pill mt-1">
-                                            <i class="fas fa-sign-out-alt me-1"></i> Logout
+                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100 rounded-pill">
+                                            <i class="fas fa-power-off me-2"></i>Logout
                                         </button>
                                     </form>
                                 </li>
                             </ul>
                         </li>
+
                     {% else %}
-                        <li class="nav-item"><a class="nav-link px-3" href="{% url 'login' %}">Login</a></li>
-                        <li class="nav-item">
-                            <a class="nav-link btn btn-login-nav px-4 rounded-pill text-white ms-lg-2" href="{% url 'register' %}">Register</a>
+                       
+                        <li class="nav-item ms-lg-2">
+                            <a class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" href="{% url 'register' %}">
+                                Join Us
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
@@ -125,74 +190,49 @@
         </div>
     </nav>
 
-    {% if messages %}
-    <div class="container mt-3">
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
-                {% if message.tags == 'success' %}<i class="fas fa-check-circle me-2"></i>{% endif %}
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
     <main>
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="custom-footer pt-5 pb-4 mt-5">
-        <div class="container">
-            <div class="row g-4">
-                <div class="col-lg-3 col-md-6">
-                    <h5 class="fw-bold mb-3 text-info">HMS Core</h5>
-                    <p class="small opacity-75">Leading the future of digital healthcare with precision and compassion.</p>
-                    <div class="d-flex gap-2 mt-3">
-                        <a href="#" class="social-circle"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="social-circle"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="https://wa.me/233500000000" class="social-circle bg-success"><i class="fab fa-whatsapp"></i></a>
-                        <a href="#" class="social-circle"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="social-circle"><i class="fab fa-twitter"></i></a>
-                    </div>
-                </div>
-
-                <div class="col-lg-2 col-md-6 offset-lg-1">
-                    <h6 class="footer-heading mb-3">Company</h6>
-                    <ul class="list-unstyled">
-                        <li><a href="{% url 'about' %}" class="footer-link">About Us</a></li>
-                        <li><a href="{% url 'services' %}" class="footer-link">Services</a></li>
-                        <li><a href="{% url 'contact' %}" class="footer-link">Contact</a></li>
-                    </ul>
-                </div>
-
-                <div class="col-lg-3 col-md-6">
-                    <h6 class="footer-heading mb-3">Support</h6>
-                    <p class="small mb-2"><i class="fas fa-phone-alt me-2 text-info"></i> +233 (0) 50 000 0000</p>
-                    <p class="small mb-2"><i class="fas fa-envelope me-2 text-info"></i> {{ hospital_settings.support_email }}</p>
-                    <p class="small"><i class="fas fa-clock me-2 text-info"></i> 24/7 Available</p>
-                </div>
-
-                <div class="col-lg-3 col-md-6">
-                    <h6 class="footer-heading mb-3">Location</h6>
-                    <p class="small mb-2"><i class="fas fa-map-marker-alt me-2 text-info"></i> 42 Medical Lane, Accra</p>
-                    <div class="gps-badge d-inline-block mb-3">GA-492-1029</div> 
-                    <br>
-                    <a href="https://maps.google.com" target="_blank" class="btn btn-sm btn-outline-info rounded-pill">
-                        <i class="fas fa-directions me-1"></i> Get Directions
-                    </a>
-                </div>
-            </div>
-
-            <hr class="mt-5 mb-4 border-light opacity-10">
+    <footer class="py-4 mt-auto">
+        <div class="container text-center text-md-start">
             <div class="row align-items-center">
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="small opacity-50 mb-0">© 2026 {{ hospital_settings.hospital_name }}. Designed for Clinical Excellence.</p>
+                <div class="col-md-6">
+                    <p class="text-muted small mb-0">© 2026 <strong>HMS Core</strong>. A Modern Clinical Solution.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="d-flex gap-3 justify-content-center justify-content-md-end mt-3 mt-md-0">
+                        <a href="#" class="text-muted"><i class="fab fa-linkedin fs-5"></i></a>
+                        <a href="#" class="text-muted"><i class="fab fa-twitter fs-5"></i></a>
+                        <a href="#" class="text-muted"><i class="fab fa-whatsapp fs-5"></i></a>
+                        <a href="#" class="text-muted"><i class="fab fa-facebook fs-5"></i></a>
+                    </div>
                 </div>
             </div>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const htmlElement = document.documentElement;
+        
+        // This function will be called by the toggle in settings.html
+        window.addEventListener('load', () => {
+            const themeToggle = document.getElementById('nightModeToggle');
+            if (themeToggle) {
+                // Sync toggle position with saved theme
+                themeToggle.checked = htmlElement.getAttribute('data-theme') === 'dark';
+
+                themeToggle.addEventListener('change', () => {
+                    const newTheme = themeToggle.checked ? 'dark' : 'light';
+                    htmlElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                });
+            }
+        });
+    </script>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

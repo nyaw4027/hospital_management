@@ -1,15 +1,209 @@
 {% extends 'shared/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+<style>
+    :root {
+        --hms-primary: #0d6efd;
+        --hms-bg: #f0f4f8; /* Soft blue-grey background */
+        --hms-card: #ffffff;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+    }
+
+    body {
+        background-color: var(--hms-bg);
+        color: var(--text-main);
+    }
+
+    /* Soft Animated Background instead of dark video */
+    .bg-animation {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        z-index: -1;
+        background: linear-gradient(135deg, #f0f4f8 0%, #e0e7ff 100%);
+        overflow: hidden;
+    }
+
+    .bg-circle {
+        position: absolute;
+        border-radius: 50%;
+        background: white;
+        opacity: 0.4;
+        filter: blur(60px);
+        animation: float 20s infinite alternate;
+    }
+
+    @keyframes float {
+        from { transform: translate(0, 0); }
+        to { transform: translate(100px, 100px); }
+    }
+
+    /* Clean Card Style */
+    .mission-card {
+        background: var(--hms-card);
+        border: none;
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255,255,255,0.8);
+    }
+
+    .mission-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(13, 110, 253, 0.1);
+    }
+
+    .gradient-text {
+        background: linear-gradient(45deg, var(--hms-primary), #0dcaf0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+    }
+
+    .stat-box {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border-bottom: 4px solid var(--hms-primary);
+    }
+
+    /* Leadership Image Style */
+    .team-img-wrapper {
+        border-radius: 20px;
+        overflow: hidden;
+        margin: -15px 15px 15px 15px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .team-img-wrapper img {
+        transition: transform 0.5s ease;
+    }
+
+    .mission-card:hover .team-img-wrapper img {
+        transform: scale(1.05);
+    }
+
+    .divider-blue {
+        width: 60px; height: 5px;
+        background: var(--hms-primary);
+        border-radius: 10px;
+        margin: 20px auto;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
+<div class="bg-animation">
+    <div class="bg-circle" style="width: 400px; height: 400px; top: -100px; left: -100px;"></div>
+    <div class="bg-circle" style="width: 300px; height: 300px; bottom: -50px; right: -50px; animation-delay: -5s;"></div>
+</div>
+
 <div class="container py-5">
-    <div class="row align-items-center">
-        <div class="col-md-6">
-            <h1 class="display-4 fw-bold text-primary">Our Mission</h1>
-            <p class="lead">To provide world-class healthcare technology that simplifies lives for doctors and saves lives for patients.</p>
-            <p>Founded in 2024, HMS Core has grown into a trusted partner for hospitals across the region, focusing on data security, ease of use, and clinical accuracy.</p>
+    <div class="row min-vh-75 align-items-center mb-5">
+        <div class="col-lg-10 mx-auto text-center" data-aos="fade-up">
+            <h1 class="display-3 fw-bold text-dark mb-2">Our <span class="gradient-text">Mission</span></h1>
+            <div class="divider-blue"></div>
+            <p class="lead fs-3 text-muted mb-5">
+                Redefining healthcare through <span id="typewriter" class="text-primary fw-bold"></span>
+            </p>
+            
+            <div class="mission-card p-5 mb-5">
+                <p class="fs-4 text-secondary lh-base m-0">
+                    HMS Core is a digital pulse for modern hospitals. 
+                    Since 2024, we’ve built the bridge between <span class="text-primary fw-bold">clinical precision</span> and <span class="text-primary fw-bold">human empathy</span>.
+                </p>
+            </div>
+
+            <div class="row g-4 mt-2">
+                {% for val, label in stats %}
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}00">
+                    <div class="mission-card stat-box p-4 text-center">
+                        <h2 class="display-5 fw-bold text-dark mb-1">{{ val }}</h2>
+                        <p class="text-uppercase small fw-bold text-muted m-0">{{ label }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-md-4"><div class="mission-card stat-box p-4"><h2>24/7</h2><p>Support</p></div></div>
+                <div class="col-md-4"><div class="mission-card stat-box p-4"><h2>99.9%</h2><p>Uptime</p></div></div>
+                <div class="col-md-4"><div class="mission-card stat-box p-4"><h2>100%</h2><p>Secure</p></div></div>
+                {% endfor %}
+            </div>
         </div>
-        <div class="col-md-6">
-            <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=600" class="img-fluid rounded shadow" alt="Hospital">
+    </div>
+
+    <div class="row py-5">
+        <div class="col-12 text-center mb-5">
+            <h2 class="fw-bold text-dark">Why Hospitals Trust Us</h2>
+        </div>
+        <div class="col-md-4 mb-4" data-aos="fade-up">
+            <div class="mission-card h-100 p-4 text-center">
+                <div class="bg-light rounded-circle d-inline-flex p-3 mb-3 text-primary fs-2 shadow-sm">
+                    <i class="fas fa-shield-heart"></i>
+                </div>
+                <h4 class="fw-bold">Safety First</h4>
+                <p class="text-muted small">HIPAA-compliant servers ensuring your patient data is handled with absolute care.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="mission-card h-100 p-4 text-center">
+                <div class="bg-light rounded-circle d-inline-flex p-3 mb-3 text-info fs-2 shadow-sm">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h4 class="fw-bold">Lightning Fast</h4>
+                <p class="text-muted small">Instant sync between Pharmacy, Lab, and Doctor modules for better care.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="mission-card h-100 p-4 text-center">
+                <div class="bg-light rounded-circle d-inline-flex p-3 mb-3 text-success fs-2 shadow-sm">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <h4 class="fw-bold">Easy to Use</h4>
+                <p class="text-muted small">Simple interface designed to reduce doctor fatigue and improve patient joy.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row py-5">
+        <div class="col-12 text-center mb-5">
+            <h2 class="fw-bold text-dark">The Visionaries</h2>
+        </div>
+        {% for member in team %}
+        <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up">
+            <div class="mission-card h-100 p-0 text-center">
+                <div class="team-img-wrapper">
+                    <img src="{{ member.image }}" alt="{{ member.name }}" class="img-fluid w-100" style="height: 280px; object-fit: cover;">
+                </div>
+                <div class="p-4 pt-0">
+                    <h5 class="fw-bold mb-1">{{ member.name }}</h5>
+                    <p class="text-primary small fw-bold text-uppercase mb-2">{{ member.role }}</p>
+                    <p class="text-muted small mb-0">{{ member.bio }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="row py-5" data-aos="zoom-in">
+        <div class="col-lg-8 mx-auto text-center">
+            <div class="mission-card p-5 bg-primary text-white border-0">
+                <h2 class="fw-bold mb-3">Ready to improve patient care?</h2>
+                <p class="opacity-90 mb-4">Join 50+ facilities that have modernised their clinical workflows with HMS Core.</p>
+                <a href="{% url 'contact' %}" class="btn btn-light btn-lg rounded-pill px-5 fw-bold shadow-sm">Start Your Journey</a>
+            </div>
         </div>
     </div>
 </div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="https://unpkg.com/typewriter-effect@latest/dist/core.js"></script>
+<script>
+    AOS.init({ duration: 800, once: true });
+
+    new Typewriter('#typewriter', {
+        strings: ['Empathy', 'Innovation', 'Data Security', 'Efficiency'],
+        autoStart: true, loop: true, delay: 75,
+    });
+</script>
 {% endblock %}

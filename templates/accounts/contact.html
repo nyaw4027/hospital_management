@@ -1,92 +1,183 @@
 {% extends 'shared/base.html' %}
-{% block content %}
-<div class="container py-4 py-md-5">
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-success alert-dismissible fade show shadow-sm border-0" role="alert">
-                <i class="fas fa-check-circle me-2"></i> {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
+{% load static %}
 
-    <div class="text-center mb-5">
-        <h1 class="fw-bold display-6 display-md-5">Contact Our Team</h1>
-        <p class="text-muted mx-auto px-3" style="max-width: 700px;">
-            Reach out to our specialists or administration. We aim to respond to all electronic inquiries within 24 hours.
+{% block extra_css %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+<style>
+    :root {
+        --hms-primary: #0d6efd;
+        --hms-soft-bg: #f8fafc;
+        --hms-card-bg: #ffffff;
+        --hms-accent: #198754;
+    }
+
+    /* Soft, friendly background instead of dark video */
+    body { 
+        background: var(--hms-soft-bg); 
+        color: #334155; 
+    }
+
+    /* Subtle background pattern for a professional feel */
+    .contact-hero {
+        background: linear-gradient(135deg, #e0f2fe 0%, #f8fafc 100%);
+        padding: 60px 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .glass-card {
+        background: var(--hms-card-bg);
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .form-control, .form-select {
+        background: #ffffff !important;
+        border: 2px solid #f1f5f9 !important;
+        color: #1e293b !important;
+        border-radius: 12px;
+        padding: 12px 15px;
+    }
+
+    .form-control:focus {
+        border-color: var(--hms-primary) !important;
+        box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+    }
+
+    .status-badge {
+        background: white;
+        padding: 8px 16px;
+        border-radius: 50px;
+        display: inline-flex;
+        align-items: center;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--hms-accent);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .status-dot {
+        width: 8px; height: 8px;
+        background: var(--hms-accent);
+        border-radius: 50%;
+        margin-right: 10px;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.4; }
+        100% { opacity: 1; }
+    }
+
+    .contact-icon {
+        width: 50px; height: 50px;
+        background: rgba(13, 110, 253, 0.1);
+        color: var(--hms-primary);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    /* User-friendly Map */
+    .map-container {
+        border-radius: 20px;
+        overflow: hidden;
+        border: 5px solid white;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="contact-hero text-center">
+    <div class="container" data-aos="fade-down">
+        <div class="status-badge mb-3">
+            <span class="status-dot"></span> Support Online & Ready to Help
+        </div>
+        <h1 class="display-4 fw-bold text-dark">How can we <span class="text-primary">help you?</span></h1>
+        <p class="text-muted fs-5 mx-auto" style="max-width: 600px;">
+            Reach out to our specialized teams for clinical inquiries, billing support, or general hospital information.
         </p>
     </div>
+</section>
 
+<div class="container py-5">
     <div class="row g-4">
-        <div class="col-lg-4 order-2 order-lg-1">
-            <div class="d-grid d-md-none mb-4">
-                <a href="tel:+233555000111" class="btn btn-danger btn-lg py-3 shadow">
-                    <i class="fas fa-phone-alt me-2"></i> Call Emergency Now
-                </a>
-            </div>
-
-            <div class="card border-0 shadow-sm p-4 mb-4 border-start border-primary border-4">
-                <div class="d-flex align-items-start">
-                    <div class="text-primary fs-4 me-3 mt-1"><i class="fas fa-map-marker-alt"></i></div>
+        <div class="col-lg-4" data-aos="fade-right">
+            <div class="glass-card p-4 mb-4">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="contact-icon me-3"><i class="fas fa-phone-alt"></i></div>
                     <div>
-                        <h6 class="fw-bold mb-1">Physical Address</h6>
-                        <p class="text-muted small mb-0">123 Health Way, North Ridge<br>Accra, Ghana</p>
+                        <p class="small text-uppercase text-muted fw-bold mb-0">Emergency 24/7</p>
+                        <a href="tel:+233555000111" class="text-dark text-decoration-none fw-bold fs-5">+233 555 000 111</a>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center mb-4">
+                    <div class="contact-icon me-3"><i class="fas fa-envelope"></i></div>
+                    <div>
+                        <p class="small text-uppercase text-muted fw-bold mb-0">Email Us</p>
+                        <p class="mb-0 text-dark fw-semibold">care@hmscore.com</p>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center">
+                    <div class="contact-icon me-3"><i class="fas fa-map-marker-alt"></i></div>
+                    <div>
+                        <p class="small text-uppercase text-muted fw-bold mb-0">Visit Us</p>
+                        <p class="mb-0 text-dark fw-semibold">Ridge Hospital Area, Accra</p>
                     </div>
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm p-4 mb-4 border-start border-success border-4">
-                <div class="d-flex align-items-start">
-                    <div class="text-success fs-4 me-3 mt-1"><i class="fas fa-clock"></i></div>
-                    <div>
-                        <h6 class="fw-bold mb-1">Clinic Hours</h6>
-                        <p class="text-muted small mb-0">Mon - Fri: 08:00 - 20:00<br>Weekends: 10:00 - 16:00</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card border-0 bg-light p-4 shadow-sm text-center">
-                <h6 class="fw-bold">Looking for Lab Results?</h6>
-                <p class="small text-muted">You can check your status directly in the patient portal.</p>
-                <a href="#" class="btn btn-sm btn-primary rounded-pill px-4">Visit Patient Portal</a>
+            <div class="glass-card p-4 bg-primary text-white border-0">
+                <h5 class="fw-bold mb-3">Patient Portal</h5>
+                <p class="small opacity-90">Did you know you can check lab results and book appointments instantly via your dashboard?</p>
+                <a href="{% url 'dashboard' %}" class="btn btn-light btn-sm rounded-pill px-4 fw-bold">Login Now</a>
             </div>
         </div>
 
-        <div class="col-lg-8 order-1 order-lg-2">
-            <div class="card border-0 shadow-sm p-3 p-md-5">
-                <h4 class="fw-bold mb-4">Send a Secure Message</h4>
-                
+        <div class="col-lg-8" data-aos="fade-left">
+            <div class="glass-card p-4 p-md-5">
+                <h3 class="fw-bold text-dark mb-4">Send us a Message</h3>
                 <form method="POST">
                     {% csrf_token %}
                     <div class="row g-3">
-                        <div class="col-12 col-md-6">
-                            <label class="form-label small fw-bold text-uppercase">Full Name</label>
-                            <input type="text" name="name" class="form-control form-control-lg bg-light border-0" placeholder="John Doe" required>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">YOUR NAME</label>
+                            <input type="text" name="name" class="form-control" placeholder="John Doe" required>
                         </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label small fw-bold text-uppercase">Email Address</label>
-                            <input type="email" name="email" class="form-control form-control-lg bg-light border-0" placeholder="john@example.com" required>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">EMAIL ADDRESS</label>
+                            <input type="email" name="email" class="form-control" placeholder="john@example.com" required>
                         </div>
-                        
                         <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase">Reason for Inquiry</label>
-                            <select name="subject" class="form-select form-control-lg bg-light border-0" required>
-                                <option value="General">General Information</option>
+                            <label class="form-label small fw-bold text-muted">SELECT DEPARTMENT</label>
+                            <select name="subject" class="form-select">
+                                <option value="General">General Patient Inquiries</option>
                                 <option value="Billing">Billing & Insurance</option>
-                                <option value="Careers">Careers / HR</option>
-                                <option value="Technical">Report a Technical Issue</option>
+                                <option value="IT">Patient Portal Support</option>
+                                <option value="Careers">HR & Careers</option>
                             </select>
                         </div>
-
                         <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase">Message</label>
-                            <textarea name="message" class="form-control bg-light border-0" rows="5" placeholder="How can we assist you today?" required></textarea>
+                            <label class="form-label small fw-bold text-muted">HOW CAN WE HELP?</label>
+                            <textarea name="message" class="form-control" rows="4" placeholder="Please describe your inquiry..." required></textarea>
                         </div>
-
-                        <div class="col-12 d-grid d-md-block text-md-end mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg px-md-5 shadow">
-                                Send Message <i class="fas fa-paper-plane ms-2"></i>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary btn-lg px-5 rounded-pill fw-bold shadow-sm">
+                                Submit Message <i class="fas fa-paper-plane ms-2"></i>
                             </button>
+                            <p class="text-muted mt-3 x-small"><i class="fas fa-lock me-1"></i> Your information is handled securely according to HIPAA standards.</p>
                         </div>
                     </div>
                 </form>
@@ -94,15 +185,20 @@
         </div>
     </div>
 
-    <div class="row mt-5">
-        <div class="col-12">
-            <div class="ratio ratio-16x9 ratio-md-21x9 rounded-4 shadow-sm overflow-hidden">
+    <div class="mt-5" data-aos="zoom-in">
+        <div class="map-container">
+            <div class="ratio ratio-21x9">
                 <iframe 
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d127063.1558514931!2d-0.2662916!3d5.5912444!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xfdf9084b2b7a773%3A0xbed14ed8650e2dd3!2sAccra!5e0!3m2!1sen!2sgh!4v1700000000000" 
+                    src="https://www.google.com/maps/embed?pb=..." 
                     style="border:0;" allowfullscreen="" loading="lazy">
                 </iframe>
             </div>
         </div>
     </div>
 </div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init({ duration: 800, once: true });
+</script>
 {% endblock %}

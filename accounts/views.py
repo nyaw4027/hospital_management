@@ -30,9 +30,81 @@ def home(request):
     return render(request, 'accounts/home.html')
 
 def about(request):
-    return render(request, 'accounts/about.html')
+    context = {
+        'stats': [
+            ('24/7', 'Global Support'), 
+            ('99.9%', 'System Uptime'), 
+            ('10k+', 'Records Secured')
+        ],
+        'team': [
+            {
+                'name': 'Dr. Sarah Chen',
+                'role': 'Chief Medical Officer',
+                'bio': 'Former head of surgery with 15 years in medical tech.',
+                'image': 'https://i.pravatar.cc/300?img=1'
+            },
+            {
+                'name': 'James Miller',
+                'role': 'Lead Software Architect',
+                'bio': 'Specialist in high-security cloud infrastructure.',
+                'image': 'https://i.pravatar.cc/300?img=2'
+            },
+            {
+                'name': 'Elena Rodriguez',
+                'role': 'Head of UX Design',
+                'bio': 'Dedicated to reducing clinical burnout through design.',
+                'image': 'https://i.pravatar.cc/300?img=3'
+            }
+        ]
+    }
+    return render(request, 'accounts/about.html', context)
+def contact(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        user_email = request.POST.get('email')
+        subject = request.POST.get('subject')
+        message_body = request.POST.get('message')
 
-def contact(request): 
+        # 1. Save to Database for record keeping
+        ContactMessage.objects.create(
+            name=name, email=user_email, 
+            subject=subject, message=message_body
+        )
+
+        # 2. Email for the Admin (You)
+        admin_subject = f"🚨 New HMS Inquiry: {subject}"
+        admin_msg = f"Inquiry from: {name}\nEmail: {user_email}\n\nMessage:\n{message_body}"
+
+        # 3. Email for the Patient (Auto-Responder)
+        # We can use an HTML template for a "branded" look
+        patient_subject = "We've Received Your Inquiry - HMS Core"
+        html_content = f"""
+            <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+                <h2 style="color: #00d2ff;">Hello {name},</h2>
+                <p>Thank you for reaching out to <strong>HMS Core</strong>. This is an automated confirmation that we have received your message regarding <strong>{subject}</strong>.</p>
+                <p>Our administration team or specialized staff will review your inquiry and get back to you within 24 hours.</p>
+                <hr style="border: none; border-top: 1px solid #eee;">
+                <p style="font-size: 0.9em; color: #777;"><em>Please do not reply to this email. For emergencies, please call our 24/7 line.</em></p>
+            </div>
+        """
+        text_content = strip_tags(html_content)
+
+        try:
+            # Send to Admin
+            send_mail(admin_subject, admin_msg, settings.DEFAULT_FROM_EMAIL, [settings.ADMIN_EMAIL])
+
+            # Send to Patient (Auto-Responder)
+            msg = EmailMultiAlternatives(patient_subject, text_content, settings.DEFAULT_FROM_EMAIL, [user_email])
+            msg.attach_alternative(html_content, "text/html")
+            msg.send()
+
+            messages.success(request, "Your message was sent! Check your inbox for a confirmation.")
+        except Exception as e:
+            # If email fails (e.g., wrong SMTP config), the message is still saved in DB
+            messages.info(request, "Message saved. Our team will contact you soon.")
+
+        return redirect('contact')
+
     return render(request, 'accounts/contact.html')
 
 def services(request): 
@@ -58,20 +130,25 @@ def register(request):
 def user_login(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
+
     if request.method == 'POST':
         form = UserLoginForm(request, data=request.POST)
         if form.is_valid():
-            user = form.get_user() 
-            if user.is_active:
-                login(request, user)
-                messages.success(request, f'Welcome back, {user.username}!')
-                return redirect('dashboard')
-            else:
-                messages.error(request, 'This account has been deactivated.')
+            user = form.get_user()
+            login(request, user)
+            messages.success(request, f'Welcome back, {user.username}!')
+            
+            # Check if there is a 'next' destination (e.g. /dashboard/)
+            next_url = request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
+            return redirect('dashboard')
         else:
-            messages.error(request, 'Invalid username or password.')
+            # This will catch if the username/password combo is wrong
+            messages.error(request, 'Invalid credentials. Please check your username and password.')
     else:
         form = UserLoginForm()
+        
     return render(request, 'accounts/login.html', {'form': form})
 
 @login_required
@@ -83,27 +160,37 @@ def user_logout(request):
 # --- DASHBOARD LOGIC (Traffic Controller) ---
 @login_required
 def dashboard_redirect(request):
-    role = request.user.role.lower() if request.user.role else None
+    """
+    Traffic controller: Matches the User's role to the URL names 
+    defined in urlpatterns.
+    """
+    # 1. Normalize role to lowercase for safety
+    role = request.user.role.lower() if hasattr(request.user, 'role') and request.user.role else None
 
+    # 2. Superuser/Manager Override
     if request.user.is_superuser or role == 'manager':
         return redirect('manager_dashboard')
     
+    # 3. Precise Role-to-URL mapping
     role_map = {
         'doctor': 'doctor_dashboard',
         'patient': 'patient_dashboard',
         'pharmacy': 'pharmacy_dashboard',
-        'staff': 'pharmacy_dashboard',
+        'staff': 'pharmacy_dashboard',   # Mapping 'staff' to pharmacy per your setup
         'cashier': 'cashier_dashboard',
         'lab': 'lab_dashboard',
+        'lab_tech': 'lab_dashboard',     # Common alias for lab users
     }
     
+    # 4. Attempt Redirect
     target_view = role_map.get(role)
+    
     if target_view:
         return redirect(target_view)
     
-    messages.warning(request, 'No specific dashboard assigned to your role.')
+    # 5. Fallback if role is missing or unrecognized
+    messages.warning(request, f"No dashboard found for role: {role or 'None'}. Please contact Admin.")
     return redirect('profile')
-
 # --- MANAGER & ANALYTICS ---
 @login_required
 def manager_dashboard(request):
@@ -844,4 +931,64 @@ def contact_page(request):
 
 
 
+# In your manager dashboard view
+def manage_inquiries(request):
+    # Get unread count for the notification badge
+    unread_count = ContactMessage.objects.filter(is_read=False).count()
+    
+    # Get all inquiries for the table
+    inquiries = ContactMessage.objects.all()
+    
+    return render(request, 'manager/inquiries.html', {
+        'inquiries': inquiries,
+        'unread_count': unread_count
+    })
+
+
+@login_required
+def user_settings(request):
+    if request.method == 'POST':
+        # 1. Handle Email Change
+        new_email = request.POST.get('email')
+        if new_email:
+            request.user.email = new_email
+            request.user.save()
+            
+        # 2. Handle Night Mode (Example using a profile or session)
+        night_mode = request.POST.get('night_mode') == 'on'
+        # If you have a UserProfile model linked to the user:
+        # request.user.profile.night_mode = night_mode
+        # request.user.profile.save()
+        
+        messages.success(request, "Your preferences have been updated!")
+        return redirect('settings')
+
+    return render(request, 'accounts/settings.html')
+
+
+
+    # users/views.py or core/views.py
+
+@login_required
+def main_dashboard_router(request):
+    """The central traffic controller for the hospital."""
+    role = getattr(request.user, 'role', None)
+
+    if role == 'manager':
+        return redirect('manager_dashboard')
+    elif role == 'doctor':
+        return redirect('doctor_dashboard')
+    elif role == 'patient':
+        return redirect('patient_dashboard')
+    elif role == 'cashier':
+        return redirect('cashier_dashboard')
+    elif role == 'pharmacist':
+        return redirect('pharmacy_dashboard')
+    elif role == 'lab_tech':
+        return redirect('lab_dashboard')
+    elif role == 'nurse':
+        return redirect('opd_dashboard')
+    
+    # Fallback if no role is found
+    return render(request, 'shared/no_role.html')
 

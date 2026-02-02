@@ -1,0 +1,61 @@
+{% extends 'shared/base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4 d-flex align-items-center">
+            <div class="rounded-circle bg-primary text-white p-4 me-3">
+                <i class="fas fa-user-injured fa-2x"></i>
+            </div>
+            <div>
+                <h3 class="fw-bold mb-0">{{ patient.user.get_full_name }}</h3>
+                <p class="text-muted mb-0">Patient ID: #{{ patient.id }} | DOB: {{ patient.date_of_birth }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h5 class="fw-bold mb-3"><i class="fas fa-microscope me-2 text-info"></i>Diagnostic History</h5>
+            {% for report in lab_results %}
+            <div class="card mb-3 border-0 shadow-sm rounded-4 border-start border-4 border-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="fw-bold">{{ report.test_type.name }}</h6>
+                        <small class="text-muted">{{ report.updated_at|date:"d M Y" }}</small>
+                    </div>
+                    <p class="small text-muted">{{ report.result_summary|truncatewords:20 }}</p>
+                    {% if report.result_file %}
+                    <a href="{{ report.result_file.url }}" class="btn btn-sm btn-outline-info rounded-pill">
+                        <i class="fas fa-file-pdf me-1"></i> View Full Report
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted small">No lab records found.</p>
+            {% endfor %}
+        </div>
+
+        <div class="col-md-6">
+            <h5 class="fw-bold mb-3"><i class="fas fa-pills me-2 text-danger"></i>Medication History</h5>
+            {% for rx in prescriptions %}
+            <div class="card mb-3 border-0 shadow-sm rounded-4 border-start border-4 border-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="fw-bold">{{ rx.medication_name }}</h6>
+                        <span class="badge {% if rx.status == 'dispensed' %}bg-success{% else %}bg-warning{% endif %} rounded-pill">
+                            {{ rx.status|capfirst }}
+                        </span>
+                    </div>
+                    <p class="small mb-1"><strong>Dosage:</strong> {{ rx.dosage|default:"As prescribed" }}</p>
+                    <small class="text-muted">Issued by Dr. {{ rx.doctor.user.last_name }} on {{ rx.created_at|date:"d M Y" }}</small>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted small">No medication history found.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -5,213 +5,258 @@
 
 {% block extra_css %}
 <style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --hms-primary: #4361ee;
+        --hms-success: #2ecc71;
+    }
+
+    body { background-color: #f8fafc; }
+
+    /* Modern Glass Cards */
     .stat-card {
-        background: #fff;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         padding: 1.5rem;
-        border-radius: 15px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        transition: transform 0.2s;
-        border: 1px solid #edf2f7;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .stat-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(67, 97, 238, 0.1);
     }
+
     .stat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
+        font-size: 1.4rem;
+        margin-bottom: 1.25rem;
     }
-    .stat-value {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: #2d3748;
+
+    /* Progress Trackers */
+    .queue-progress {
+        height: 8px;
+        border-radius: 10px;
+        background-color: #e2e8f0;
+        overflow: hidden;
+        margin: 10px 0;
     }
-    .stat-label {
-        color: #718096;
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.025em;
+    .queue-progress-bar {
+        background: linear-gradient(90deg, var(--hms-primary), #3f37c9);
+        height: 100%;
+        transition: width 1s ease;
     }
+
+    /* Table & List Refinement */
     .card {
-        border-radius: 15px;
+        border-radius: 20px;
         border: none;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
     }
-    .card-header {
-        background-color: transparent;
-        border-bottom: 1px solid #edf2f7;
-        font-weight: 600;
-        padding: 1.25rem;
+    .table thead th {
+        background-color: #fcfcfd;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        border-top: none;
     }
-    .avatar-sm {
-        width: 35px;
-        height: 35px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .btn-action {
+        transition: all 0.2s;
+    }
+    .btn-action:hover {
+        transform: scale(1.05);
+    }
+    
+    /* Smooth Pulse for Active Appointments */
+    .pulse-indicator {
+        width: 8px;
+        height: 8px;
+        background: var(--hms-success);
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+        box-shadow: 0 0 0 rgba(46, 204, 113, 0.4);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-1"><i class="fas fa-user-md text-primary me-2"></i>Welcome, Dr. {{ user.last_name }}</h1>
-            <p class="text-muted small mb-0">Today is {% now "l, jS F Y" %}</p>
+    <div class="row align-items-center mb-5">
+        <div class="col-md-7">
+            <h1 class="display-6 fw-bold text-dark mb-1">Welcome back, Dr. {{ user.last_name }}</h1>
+            <p class="text-muted"><i class="far fa-clock me-2"></i>{{ today|date:"l, F j, Y" }} | <span class="text-primary fw-bold">Active Shift</span></p>
         </div>
-        <div class="d-flex gap-2 align-items-center">
-            <div class="text-end me-3 d-none d-md-block">
-                <span class="badge bg-primary rounded-pill px-3">{{ doctor.get_specialization_display|default:"General Practice" }}</span>
-                <div class="mt-1 small text-muted">License: {{ doctor.license_number }}</div>
+        <div class="col-md-5 text-md-end">
+            <div class="d-inline-flex align-items-center bg-white p-2 rounded-pill shadow-sm border">
+                <div class="px-3 border-end">
+                    <small class="text-muted d-block text-uppercase" style="font-size: 10px;">Specialty</small>
+                    <span class="fw-bold">{{ doctor.get_specialization_display|default:"General" }}</span>
+                </div>
+                <div class="px-3">
+                    <small class="text-muted d-block text-uppercase" style="font-size: 10px;">Today's Progress</small>
+                    <span class="fw-bold text-primary">{{ completed_appointments }}/{{ todays_appointments.count }}</span>
+                </div>
             </div>
-            <a href="{% url 'doctor_patients' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
-                <i class="fas fa-prescription me-2"></i>Patients List
-            </a>
         </div>
     </div>
 
-    <div class="row g-4 mb-4">
-        <div class="col-md-3">
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-md-6">
             <div class="stat-card">
                 <div class="stat-icon bg-primary bg-opacity-10 text-primary">
-                    <i class="fas fa-calendar-check"></i>
+                    <i class="fas fa-stethoscope"></i>
                 </div>
-                <div class="stat-value">{{ total_appointments|default:"0" }}</div>
-                <div class="stat-label">Total Consults</div>
+                <div class="stat-label">Daily Capacity</div>
+                <div class="stat-value">{{ todays_appointments.count }} <small class="text-muted fs-6">slots</small></div>
+                <div class="queue-progress">
+                    <div class="queue-progress-bar" style="width: 75%"></div>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-xl-3 col-md-6">
             <div class="stat-card">
                 <div class="stat-icon bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-check-circle"></i>
+                    <i class="fas fa-user-check"></i>
                 </div>
-                <div class="stat-value">{{ completed_appointments|default:"0" }}</div>
-                <div class="stat-label">Completed</div>
+                <div class="stat-label">Completed Today</div>
+                <div class="stat-value">{{ completed_appointments }}</div>
+                <small class="text-success fw-bold mt-2 d-block"><i class="fas fa-arrow-up me-1"></i>Efficiency High</small>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="stat-card border-primary border-opacity-25">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
                 <div class="stat-icon bg-warning bg-opacity-10 text-warning">
-                    <i class="fas fa-clock"></i>
+                    <i class="fas fa-hourglass-half"></i>
                 </div>
-                <div class="stat-value">{{ todays_appointments.count|default:"0" }}</div>
-                <div class="stat-label">Today's Queue</div>
+                <div class="stat-label">Pending Reviews</div>
+                <div class="stat-value">{% with pending=todays_appointments.count|subtract:completed_appointments %}{{ pending }}{% endwith %}</div>
+                <small class="text-muted mt-2 d-block">Average wait: 14 mins</small>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-xl-3 col-md-6">
             <div class="stat-card">
                 <div class="stat-icon bg-info bg-opacity-10 text-info">
-                    <i class="fas fa-users"></i>
+                    <i class="fas fa-wallet"></i>
                 </div>
-                <div class="stat-value">{{ recent_patients.count|default:"0" }}</div>
-                <div class="stat-label">Your Patients</div>
+                <div class="stat-label">Consultation Fees</div>
+                <div class="stat-value">${{ doctor.consultation_fee|floatformat:0 }}</div>
+                <small class="text-muted mt-2 d-block">Per clinical session</small>
             </div>
         </div>
     </div>
 
     <div class="row g-4">
         <div class="col-lg-8">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-calendar-day text-primary me-2"></i>Active Consultation Queue</span>
-                    <a href="{% url 'doctor_appointments' %}" class="btn btn-sm btn-outline-primary rounded-pill">Full Schedule</a>
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-stream text-primary me-2"></i>Live Queue</h5>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-light border">Filter</button>
+                        <a href="{% url 'doctor_appointments' %}" class="btn btn-sm btn-primary">Full View</a>
+                    </div>
                 </div>
-                <div class="card-body">
-                    {% if todays_appointments %}
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead class="table-light">
-                                    <tr class="small text-uppercase text-muted">
-                                        <th>Time</th>
-                                        <th>Patient</th>
-                                        <th>Status</th>
-                                        <th class="text-end">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for appointment in todays_appointments %}
-                                    <tr>
-                                        <td class="fw-bold text-primary">{{ appointment.appointment_time|time:"g:i A" }}</td>
-                                        <td>
-                                            <div class="fw-bold">{{ appointment.patient.user.get_full_name }}</div>
-                                            <div class="small text-muted">ID: {{ appointment.patient.patient_id }}</div>
-                                        </td>
-                                        <td>
-                                            <span class="badge rounded-pill 
-                                                {% if appointment.status == 'completed' %}bg-success
-                                                {% elif appointment.status == 'scheduled' %}bg-warning text-dark
-                                                {% else %}bg-danger{% endif %}">
-                                                {{ appointment.get_status_display }}
-                                            </span>
-                                        </td>
-                                        <td class="text-end">
-                                            {% if appointment.status == 'scheduled' %}
-                                            <a href="{% url 'consultation_session' appointment.id %}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
-                                                <i class="fas fa-stethoscope me-1"></i> Start
-                                            </a>
-                                            {% else %}
-                                            <a href="{% url 'patient_detail' appointment.patient.id %}" class="btn btn-sm btn-light border rounded-pill px-3">
-                                                <i class="fas fa-eye me-1"></i> View
-                                            </a>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-calendar-times fa-3x text-light mb-3"></i>
-                            <p class="text-muted">No appointments scheduled for today.</p>
-                        </div>
-                    {% endif %}
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Patient Info</th>
+                                    <th>Schedule</th>
+                                    <th>Status</th>
+                                    <th class="text-end pe-4">Clinical Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appt in todays_appointments %}
+                                <tr class="{% if appt.status == 'completed' %}opacity-50{% endif %}">
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-soft-primary text-primary rounded-circle me-3 d-flex align-items-center justify-content-center bg-light" style="width: 40px; height: 40px;">
+                                                {{ appt.patient.user.first_name|first }}{{ appt.patient.user.last_name|first }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark">{{ appt.patient.user.get_full_name }}</div>
+                                                <small class="text-muted">{{ appt.patient.patient_id }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">{{ appt.appointment_time|time:"H:i" }}</div>
+                                        <small class="text-muted">Confirmed</small>
+                                    </td>
+                                    <td>
+                                        {% if appt.status == 'scheduled' %}
+                                            <span class="badge bg-soft-warning text-warning border border-warning px-3 rounded-pill"><span class="pulse-indicator"></span>Waiting</span>
+                                        {% elif appt.status == 'completed' %}
+                                            <span class="badge bg-success px-3 rounded-pill">Checked Out</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-muted px-3 rounded-pill">{{ appt.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        {% if appt.status == 'scheduled' %}
+                                        <a href="{% url 'consultation_session' appt.id %}" class="btn btn-primary btn-sm rounded-pill btn-action px-4 shadow-sm">
+                                            Consult <i class="fas fa-chevron-right ms-1"></i>
+                                        </a>
+                                        {% else %}
+                                        <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" disabled>Completed</button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5">
+                                        <img src="{% static 'img/empty-queue.svg' %}" style="width: 120px;" class="mb-3 opacity-25">
+                                        <p class="text-muted">Relax! No patients in your queue right now.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <span><i class="fas fa-user-injured text-primary me-2"></i>Quick Access Patients</span>
-                </div>
+            <div class="card border-0 shadow-sm mb-4 bg-primary text-white p-4">
+                <h5 class="fw-bold mb-3">Quick Records Lookup</h5>
+                <form action="{% url 'doctor_patients' %}" method="GET">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control border-0 rounded-start-pill px-3" placeholder="Enter Patient ID...">
+                        <button class="btn btn-dark rounded-end-pill px-3"><i class="fas fa-search"></i></button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-bold">Recent History</div>
                 <div class="list-group list-group-flush">
                     {% for patient in recent_patients %}
-                    <a href="{% url 'patient_detail' patient.id %}" class="list-group-item list-group-item-action py-3 border-0">
-                        <div class="d-flex w-100 justify-content-between align-items-center">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar-sm bg-light rounded-circle me-3">
-                                    <i class="fas fa-user-circle text-secondary"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0 fw-bold">{{ patient.user.get_full_name }}</h6>
-                                    <small class="text-muted">Last Visit: {{ patient.appointments.last.appointment_date|date:"M d" }}</small>
-                                </div>
+                    <a href="{% url 'patient_detail' patient.id %}" class="list-group-item list-group-item-action py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0 fw-bold">{{ patient.user.get_full_name }}</h6>
+                                <small class="text-muted">Last: {{ patient.updated_at|date:"M d" }}</small>
                             </div>
-                            <i class="fas fa-chevron-right text-muted small"></i>
+                            <span class="btn btn-sm btn-light rounded-circle"><i class="fas fa-folder-open text-primary"></i></span>
                         </div>
                     </a>
-                    {% empty %}
-                    <div class="p-5 text-center">
-                        <p class="text-muted small">No patient records found.</p>
-                    </div>
                     {% endfor %}
-                </div>
-                <div class="card-footer bg-white border-0 text-center py-3">
-                    <form action="{% url 'search_patients' %}" method="GET" class="px-3">
-                        <div class="input-group input-group-sm">
-                            <input type="text" name="q" class="form-control rounded-start-pill" placeholder="Search Patient ID...">
-                            <button class="btn btn-primary rounded-end-pill" type="submit">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>

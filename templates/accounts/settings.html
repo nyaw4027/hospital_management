@@ -1,0 +1,114 @@
+{% extends 'shared/base.html' %}
+
+{% block title %}Account Settings | HMS Core{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 rounded-4 p-4 text-center sticky-lg-top" style="top: 100px;">
+                <div class="bg-primary-subtle d-inline-block p-4 rounded-circle mb-3 mx-auto">
+                    <i class="fas fa-user-shield fa-3x text-primary"></i>
+                </div>
+                <h4 class="fw-bold mb-1">{{ user.username|title }}</h4>
+                <p class="text-muted small">System Access: {{ user.role|upper }}</p>
+                
+                <a href="{% url 'logout' %}?next={% url 'login' %}" class="btn btn-outline-primary btn-sm w-100 rounded-pill mt-2 fw-bold">
+                    <i class="fas fa-exchange-alt me-2"></i>Switch Account
+                </a>
+
+                <hr class="opacity-50 my-4">
+                <div class="text-start small">
+                    <p class="mb-2"><i class="fas fa-envelope me-2 text-primary"></i>{{ user.email }}</p>
+                    <p class="mb-0"><i class="fas fa-calendar-alt me-2 text-primary"></i>Joined {{ user.date_joined|date:"M Y" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="card border-0 rounded-4 p-4 mb-4">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-users-cog me-2 text-primary"></i>Account Switcher</h5>
+                    <p class="text-muted small mb-4">You are currently logged in as <strong>{{ user.username }}</strong>. Switch to a different session or add a new account.</p>
+                    
+                    <div class="list-group list-group-flush gap-2">
+                        <div class="list-group-item d-flex align-items-center justify-content-between border rounded-4 p-3 bg-primary-subtle border-primary">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary text-white rounded-circle p-2 me-3">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">{{ user.username|title }}</h6>
+                                    <small class="text-primary fw-bold text-uppercase" style="font-size: 0.7rem;">Active {{ user.role }}</small>
+                                </div>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">Current</span>
+                        </div>
+
+                        <a href="{% url 'login' %}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between border rounded-4 p-3 bg-light">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-secondary text-white rounded-circle p-2 me-3">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">Add Another Account</h6>
+                                    <small class="text-muted">Sign in with a different role</small>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card border-0 rounded-4 p-4 mb-4">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-sliders-h me-2 text-primary"></i>Display Preferences</h5>
+                    <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light">
+                        <div>
+                            <h6 class="mb-0 fw-bold">Night Mode</h6>
+                            <small class="text-muted">Switch between light and dark clinical interface.</small>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input fs-4" type="checkbox" id="nightModeToggle">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 rounded-4 p-4 mb-4">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-id-card me-2 text-primary"></i>Personal Details</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Email Address</label>
+                            <input type="email" name="email" class="form-control rounded-3" value="{{ user.email }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Username</label>
+                            <input type="text" class="form-control rounded-3 opacity-75 bg-light" value="{{ user.username }}" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 rounded-4 p-4 mb-4 border-start border-danger border-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="fw-bold text-danger mb-1"><i class="fas fa-shield-alt me-2"></i>Security</h5>
+                            <p class="text-muted small mb-0">Manage your password and security settings.</p>
+                        </div>
+                        <a href="{% url 'password_change' %}" class="btn btn-outline-danger btn-sm rounded-pill px-4 fw-bold">
+                            Change Password
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card border-0 rounded-4 p-3 border-start border-primary border-4 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Update your personal information and theme.</span>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">Save All Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -62,4 +62,5 @@ urlpatterns = [
     path('lab/print/<int:test_id>/', views.print_lab_report, name='print_lab_report'),
     path('patient/<int:patient_id>/order-lab/', views.create_lab_order, name='create_lab_order'),
     path('lab/result/<int:lab_id>/pdf/', views.download_lab_pdf, name='download_lab_pdf'),
+    path('settings/', views.user_settings, name='settings'),
 ]

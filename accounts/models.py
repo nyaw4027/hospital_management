@@ -164,15 +164,59 @@ class Reagent(models.Model):
 
 
 
+
+
 class ContactMessage(models.Model):
+    # Basic Info
     name = models.CharField(max_length=100)
     email = models.EmailField()
-    subject = models.CharField(max_length=200)
+    subject = models.CharField(max_length=200) # Increased length for flexibility
     message = models.TextField()
+    
+    # Manager Actions
+    response = models.TextField(blank=True, null=True) 
+    
+    # Status Tracking
+    is_read = models.BooleanField(default=False)      # For the "New Message" notification
+    is_resolved = models.BooleanField(default=False)  # For the "Answered" status
+    
+    # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        # Ensures newest messages appear at the top of the dashboard
+        ordering = ['-created_at']
+        verbose_name = "Contact Message"
+        verbose_name_plural = "Contact Messages"
 
     def __str__(self):
-        return f"{self.subject} from {self.name}"
+        return f"{self.subject} - {self.name}"
 
 
+class Patient(models.Model):
+    # Link to the User account
+    user = models.OneToOneField(User, on_delete=models.CASCADE,related_name='accounts_patient_record')
+    
+    # Basic Medical Info
+    patient_id = models.CharField(max_length=20, unique=True, blank=True)
+    blood_group = models.CharField(max_length=5, blank=True, null=True)
+    allergies = models.TextField(blank=True, null=True)
+    emergency_contact_number = models.CharField(max_length=15, blank=True, null=True)
+    
+    def __name__(self):
+        return self.user.get_full_name() or self.user.username
+
+    def __str__(self):
+        return f"Patient: {self.__name__()} ({self.patient_id})"
+    
+    # Helper to get name for templates
+    @property
+    def name(self):
+        return self.__name__()
+
+    def save(self, *args, **kwargs):
+        # Auto-generate a Patient ID if it doesn't exist
+        if not self.patient_id:
+            import uuid
+            self.patient_id = f"PAT-{uuid.uuid4().hex[:6].upper()}"
+        super().save(*args, **kwargs)

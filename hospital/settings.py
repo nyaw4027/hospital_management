@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --------------------------------------------------
 # SECURITY
 # --------------------------------------------------
-SECRET_KEY = 'django-insecure-change-this-in-production'
+SECRET_KEY = 'django-insecure-hms-core-secure-key'
 DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
@@ -17,7 +17,7 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 # APPLICATIONS
 # --------------------------------------------------
 INSTALLED_APPS = [
-    'accounts', # Custom user MUST be first
+    'accounts', # Custom user app first
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -26,7 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
 
-    # Third-party apps
+    # Third-party
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -39,6 +39,9 @@ INSTALLED_APPS = [
     'cashier',
     'manager',
     'labs.apps.LabsConfig',
+    'nurses',
+    'appointments',
+    'pharmacy',
 ]
 
 # --------------------------------------------------
@@ -56,15 +59,15 @@ MIDDLEWARE = [
     'manager.middleware.MaintenanceModeMiddleware',
 ]
 
-# --------------------------------------------------
-# URLS & TEMPLATES
-# --------------------------------------------------
 ROOT_URLCONF = 'hospital.urls'
 
+# --------------------------------------------------
+# TEMPLATES
+# --------------------------------------------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BASE_DIR / 'templates'], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -91,70 +94,50 @@ DATABASES = {
 }
 
 # --------------------------------------------------
-# AUTHENTICATION / ALLAUTH (FIXED FOR ALLAUTH 65.0+)
+# AUTHENTICATION CONFIGURATION
 # --------------------------------------------------
 AUTH_USER_MODEL = 'accounts.User'
 SITE_ID = 1
-
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-LOGIN_URL = '/accounts/login/'
+# Simple login/logout URLs
+LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
-LOGOUT_REDIRECT_URL = 'login'
+LOGOUT_REDIRECT_URL = 'home'
 
-# settings.py
+# --- ALLAUTH 65.0+ FIXES (Removes Warnings) ---
+ACCOUNT_LOGIN_METHODS = {'email', 'username'}
+# This replaces ACCOUNT_EMAIL_REQUIRED and ACCOUNT_USERNAME_REQUIRED
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_EMAIL_VERIFICATION = 'none' 
+ACCOUNT_ADAPTER = 'allauth.account.adapter.DefaultAccountAdapter'
+ACCOUNT_LOGOUT_REDIRECT_URL = 'home'
 
-# 1. Replaces ACCOUNT_AUTHENTICATION_METHOD
-ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_LOGOUT_ON_GET = True
 
-# 2. Replaces ACCOUNT_EMAIL_REQUIRED and ACCOUNT_USERNAME_REQUIRED
-# Use 'email*' to make it mandatory, or just 'email' to make it optional.
-# 'username' can be omitted if you only want email login.
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
-
-# Optional: If you still want to allow users to have a username 
-# but log in with email, you can add it to the list:
-# ACCOUNT_SIGNUP_FIELDS = ['username', 'email*', 'password1*', 'password2*']------------------------------------
-# PASSWORDS & INTERNATIONALIZATION
-# --------------------------------------------------
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
-
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_TZ = True
 
 # --------------------------------------------------
-# STATIC & MEDIA FILES
+# STATIC & MEDIA
 # --------------------------------------------------
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # --------------------------------------------------
-# EMAIL & THIRD PARTY
+# EMAIL CONFIGURATION
 # --------------------------------------------------
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': ['profile', 'email'],
-        'AUTH_PARAMS': {'access_type': 'online'},
-    }
-}
-
-PAYSTACK_PUBLIC_KEY = 'pk_test_your_public_key_here'
-PAYSTACK_SECRET_KEY = 'sk_test_your_secret_key_here'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'nyaw4027@gmail.com'
+# Use your 16-character Google App Password here
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', 'your-actual-app-password')
+DEFAULT_FROM_EMAIL = 'HMS Core Support <nyaw4027@gmail.com>'

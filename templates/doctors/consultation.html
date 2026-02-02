@@ -1,0 +1,210 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block title %}Consultation: {{ patient.user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 shadow-sm">
+        <div class="d-flex align-items-center">
+            <div class="avatar-circle bg-primary text-white me-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 50%;">
+                <i class="fas fa-user-md fa-2x"></i>
+            </div>
+            <div>
+                <h4 class="fw-bold mb-0">{{ patient.user.get_full_name }}</h4>
+                <p class="text-muted small mb-0">
+                    ID: #{{ patient.id }} | <strong>Age:</strong> {{ patient.age }} | <strong>Gender:</strong> {{ patient.gender }}
+                </p>
+            </div>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-soft-success text-success rounded-pill px-3 py-2 border border-success">
+                <i class="fas fa-circle me-1 small"></i> Active Session
+            </span>
+            <p class="text-muted small mb-0 mt-1">Visit started: {{ appointment.date|time:"g:i A" }}</p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="p-3 bg-white shadow-sm rounded-4 text-center border-bottom border-primary border-4">
+                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">Blood Pressure</small>
+                <span class="fw-bold fs-5">{{ vitals.bp|default:"--/--" }} <small class="text-muted" style="font-size: 0.6rem;">mmHg</small></span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 bg-white shadow-sm rounded-4 text-center border-bottom border-danger border-4">
+                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">Temperature</small>
+                <span class="fw-bold fs-5">{{ vitals.temperature|default:"--" }} <small class="text-muted" style="font-size: 0.6rem;">°C</small></span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 bg-white shadow-sm rounded-4 text-center border-bottom border-success border-4">
+                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">Weight</small>
+                <span class="fw-bold fs-5">{{ vitals.weight|default:"--" }} <small class="text-muted" style="font-size: 0.6rem;">kg</small></span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 bg-white shadow-sm rounded-4 text-center border-bottom border-info border-4">
+                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">Heart Rate</small>
+                <span class="fw-bold fs-5">{{ vitals.pulse|default:"--" }} <small class="text-muted" style="font-size: 0.6rem;">bpm</small></span>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" id="consultationForm">
+        {% csrf_token %}
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3 text-primary"><i class="fas fa-notes-medical me-2"></i>Clinical Assessment</h5>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-uppercase">Primary Diagnosis</label>
+                            {{ form.diagnosis }}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-uppercase">Clinical Notes & Findings</label>
+                            {{ form.clinical_notes }}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch p-3 bg-light rounded-3">
+                                    {{ form.ordered_tests }}
+                                    <label class="form-check-label fw-bold" for="{{ form.ordered_tests.id_for_label }}">Order Lab Investigations?</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch p-3 bg-light rounded-3">
+                                    {{ form.prescribed_medicines }}
+                                    <label class="form-check-label fw-bold" for="{{ form.prescribed_medicines.id_for_label }}">Issue Prescription?</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="prescriptionSection" class="card border-0 shadow-sm rounded-4 mb-4" style="display:none;">
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+                        <h5 class="fw-bold mb-0 text-danger"><i class="fas fa-pills me-2"></i>Electronic Prescription</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        {{ formset.management_form }}
+                        <div id="medicineRows">
+                            {% for item_form in formset %}
+                            <div class="row g-2 mb-3 medicine-row align-items-end p-3 border rounded-3 bg-white position-relative">
+                                <div class="col-md-5">
+                                    <label class="small text-muted fw-bold">Medicine Name</label>
+                                    {{ item_form.medicine_name }}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="small text-muted fw-bold">Dosage</label>
+                                    {{ item_form.dosage }}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="small text-muted fw-bold">Quantity</label>
+                                    {{ item_form.quantity }}
+                                </div>
+                                <div class="col-md-1 text-center">
+                                    <button type="button" class="btn btn-outline-danger btn-sm border-0 remove-row">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill mt-2" id="addRow">
+                            <i class="fas fa-plus me-1"></i> Add Another Medicine
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="d-grid mb-5">
+                    <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 shadow">
+                        <i class="fas fa-check-circle me-2"></i> Finalize & Send to Departments
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top: 20px;">
+                    <div class="card-header bg-white py-3 border-0">
+                        <h6 class="fw-bold mb-0 text-uppercase" style="letter-spacing: 1px;">
+                            <i class="fas fa-history text-muted me-2"></i>History
+                        </h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            {% for rec in history %}
+                            <div class="list-group-item border-0 p-3 bg-transparent border-bottom">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small class="fw-bold text-primary">{{ rec.visit_date|date:"d M Y" }}</small>
+                                    <span class="badge bg-light text-dark border">{{ rec.diagnosis|truncatechars:15 }}</span>
+                                </div>
+                                <p class="small text-muted mb-0">{{ rec.clinical_notes|truncatewords:12 }}</p>
+                            </div>
+                            {% empty %}
+                            <div class="p-5 text-center">
+                                <i class="fas fa-folder-open fa-3x text-light mb-3"></i>
+                                <p class="text-muted small">No previous records.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="card-footer bg-light border-0 text-center py-3">
+                        <a href="{% url 'patient_ehr_profile' patient.id %}" class="small fw-bold text-decoration-none">Full Medical Timeline →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 1. Toggle Prescription Section
+    const rxToggle = document.querySelector('input[name="prescribed_medicines"]');
+    const rxSection = document.getElementById('prescriptionSection');
+
+    rxToggle.addEventListener('change', function() {
+        rxSection.style.display = this.checked ? 'block' : 'none';
+    });
+
+    // 2. Advanced Dynamic Formset Management
+    const addRowBtn = document.getElementById('addRow');
+    const totalForms = document.getElementById('id_prescription_items-TOTAL_FORMS'); // Replace 'prescription_items' with your formset prefix
+
+    addRowBtn.addEventListener('click', function() {
+        let rows = document.getElementById('medicineRows');
+        let formNum = rows.querySelectorAll('.medicine-row').length;
+        let newRow = rows.querySelectorAll('.medicine-row')[0].cloneNode(true);
+        
+        // Update the form index in all attributes (id, name, for)
+        let formRegex = RegExp(`prescription_items-(\\d)-`,'g'); 
+        newRow.innerHTML = newRow.innerHTML.replace(formRegex, `prescription_items-${formNum}-`);
+
+        // Clear input values
+        newRow.querySelectorAll('input').forEach(input => input.value = '');
+        
+        rows.appendChild(newRow);
+        totalForms.setAttribute('value', formNum + 1);
+    });
+
+    // 3. Remove Row Logic
+    document.addEventListener('click', function(e){
+        if(e.target.closest('.remove-row')){
+            const rows = document.querySelectorAll('.medicine-row');
+            if(rows.length > 1){
+                e.target.closest('.medicine-row').remove();
+                // Note: In a production app, you'd also decrement TOTAL_FORMS here
+            } else {
+                alert("At least one medicine row is required if prescribing.");
+            }
+        }
+    });
+</script>
+{% endblock %}

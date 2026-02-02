@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'nurse_dashboard' %}">Queue</a></li>
+            <li class="breadcrumb-item active">Capture Vitals</li>
+        </ol>
+    </nav>
+
+    <div class="card shadow mx-auto border-0" style="max-width: 700px;">
+        <div class="card-header bg-primary text-white py-3">
+            <h5 class="mb-0">Recording Vitals: {{ appointment.patient.user.get_full_name }}</h5>
+        </div>
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Temperature (°C)</label>
+                        <input type="number" step="0.1" name="temp" class="form-control form-control-lg" placeholder="36.5" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Blood Pressure (mmHg)</label>
+                        <input type="text" name="bp" class="form-control form-control-lg" placeholder="120/80" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Pulse (BPM)</label>
+                        <input type="number" name="pulse" class="form-control form-control-lg" placeholder="72" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Respiratory Rate (CPM)</label>
+                        <input type="number" name="respiratory_rate" class="form-control form-control-lg" placeholder="16" required>
+                    </div>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-paper-plane"></i> Finalize and Send to Doctor
+                    </button>
+                    <a href="{% url 'nurse_dashboard' %}" class="btn btn-light">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

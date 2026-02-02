@@ -1,0 +1,9 @@
+Dear {{ patient_name }},
+
+Please find attached your laboratory test results for {{ test_name }} conducted at City General Hospital.
+
+If you have any questions regarding these results, please schedule a follow-up appointment with your doctor.
+
+Best regards,
+Laboratory Department
+City General Hospital
