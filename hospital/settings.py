@@ -1,4 +1,5 @@
 from pathlib import Path
+import dj_database_url
 import os
 
 # --------------------------------------------------
@@ -9,9 +10,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --------------------------------------------------
 # SECURITY
 # --------------------------------------------------
-SECRET_KEY = 'django-insecure-hms-core-secure-key'
-DEBUG = True
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-local-dev-key-change-this')
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+ALLOWED_HOSTS = ['*']
 
 # --------------------------------------------------
 # APPLICATIONS
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
 # --------------------------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -58,6 +60,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'manager.middleware.MaintenanceModeMiddleware',
+   
 ]
 
 ROOT_URLCONF = 'hospital.urls'
@@ -88,10 +91,12 @@ WSGI_APPLICATION = 'hospital.wsgi.application'
 # DATABASE
 # --------------------------------------------------
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        # This checks for a 'DATABASE_URL' environment variable on the server
+        # If it doesn't find one, it uses your local db.sqlite3
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600
+    )
 }
 
 # --------------------------------------------------
@@ -142,3 +147,8 @@ EMAIL_HOST_USER = 'nyaw4027@gmail.com'
 # Use your 16-character Google App Password here
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', 'your-actual-app-password')
 DEFAULT_FROM_EMAIL = 'HMS Core Support <nyaw4027@gmail.com>'
+
+
+
+# Add this at the end of your Static section
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
