@@ -17,15 +17,14 @@ if env_path.exists():
 # 2. SECURITY
 # --------------------------------------------------
 SECRET_KEY = os.environ.get('SECRET_KEY')
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+DEBUG = False
 
 # Allow local dev and the Railway production domain
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.railway.app']
 
 # Fixed CSRF for Railway production
 CSRF_TRUSTED_ORIGINS = [
-    'https://hospital.up.railway.app',
-    'https://*.railway.app',
+    'https://hospital.up.railway.app',S
 ]
 
 # --------------------------------------------------
@@ -61,6 +60,7 @@ INSTALLED_APPS = [
     'appointments',
     'pharmacy',
     'inpatient',
+    'storages',
 ]
 
 # --------------------------------------------------
@@ -104,15 +104,26 @@ WSGI_APPLICATION = 'hospital.wsgi.application'
 # --------------------------------------------------
 # DATABASE
 # --------------------------------------------------
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600,
-        conn_health_checks=True,
-        # This ssl_require is the secret sauce for Railway
-        ssl_require=not DEBUG 
-    )
-}
+
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('NAME'),
+            'USER': os.environ.get('USER'),
+            'PASSWORD': os.environ.get('PASSWORD'),
+            'HOST': os.environ.get('HOST'),
+            'PORT': os.environ.get('PORT'),
+        }
+    }
+
 
 # --------------------------------------------------
 # 7. STATIC & MEDIA / AWS S3
