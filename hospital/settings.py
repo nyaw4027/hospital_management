@@ -16,7 +16,7 @@ if env_path.exists():
 # --------------------------------------------------
 # 2. SECURITY
 # --------------------------------------------------
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-key')
+SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 # Allow local dev and the Railway production domain
@@ -101,14 +101,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'hospital.wsgi.application'
-
 # --------------------------------------------------
-# 6. DATABASE (Auto-detect PostgreSQL vs SQLite)
+# DATABASE
 # --------------------------------------------------
 DATABASES = {
     'default': dj_database_url.config(
         default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
         conn_max_age=600,
+        conn_health_checks=True,
+        # This ssl_require is the secret sauce for Railway
+        ssl_require=not DEBUG 
     )
 }
 
