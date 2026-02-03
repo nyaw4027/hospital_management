@@ -1,6 +1,8 @@
 from pathlib import Path
 import dj_database_url
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # --------------------------------------------------
 # BASE DIRECTORY
@@ -10,9 +12,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --------------------------------------------------
 # SECURITY
 # --------------------------------------------------
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-local-dev-key-change-this')
+SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['local','127.0.0.1']
+
+
+# CSRF Trusted Origins (for Railway and local)
+CSRF_TRUSTED_ORIGINS = [
+    'https://cabalalounge.up.railway.app',
+]
 
 # --------------------------------------------------
 # APPLICATIONS
@@ -86,18 +94,28 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'hospital.wsgi.application'
+# Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+# Use PostgreSQL on Railway, SQLite locally
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('NAME'),
+            'USER': os.environ.get('USER'),
+            'PASSWORD': os.environ.get('PASSWORD'),
+            'HOST': os.environ.get('HOST'),
+            'PORT': os.environ.get('PORT'),
+        }
+    }
 
-# --------------------------------------------------
-# DATABASE
-# --------------------------------------------------
-DATABASES = {
-    'default': dj_database_url.config(
-        # This checks for a 'DATABASE_URL' environment variable on the server
-        # If it doesn't find one, it uses your local db.sqlite3
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600
-    )
-}
 
 # --------------------------------------------------
 # AUTHENTICATION CONFIGURATION
