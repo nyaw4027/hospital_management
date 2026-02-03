@@ -1,37 +1,26 @@
 import os
-import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
 
-# --------------------------------------------------
 # 1. BASE DIRECTORY & ENV LOADING
-# --------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Loading .env with a specific path to avoid parse warnings
-env_path = BASE_DIR / ".env"
-if env_path.exists():
-    load_dotenv(dotenv_path=env_path)
+# Load local .env file if it exists
+load_dotenv(BASE_DIR / ".env")
 
-# --------------------------------------------------
 # 2. SECURITY
-# --------------------------------------------------
-SECRET_KEY = os.environ.get('SECRET_KEY')
-DEBUG = False
+# For local use, we provide a fallback string if SECRET_KEY isn't in .env
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-local-development-key')
 
-# Allow local dev and the Railway production domain
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.railway.app']
+# CRITICAL: Set to True to see EXACT errors instead of "Server Error (500)"
+DEBUG = True
 
-# Fixed CSRF for Railway production
-CSRF_TRUSTED_ORIGINS = [
-    'https://hospital.up.railway.app',S
-]
+# Empty list allows 'localhost' and '127.0.0.1' automatically when DEBUG is True
+ALLOWED_HOSTS = []
 
-# --------------------------------------------------
-# 3. APPLICATIONS (Fixed allauth registration)
-# --------------------------------------------------
+# 3. APPLICATIONS
 INSTALLED_APPS = [
-    'accounts', # Your custom user app
+    'accounts', 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,7 +33,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
+    #'allauth.socialaccount.providers.google',
     'django_extensions',
     'storages',
     'crispy_forms',
@@ -60,15 +49,12 @@ INSTALLED_APPS = [
     'appointments',
     'pharmacy',
     'inpatient',
-    'storages',
 ]
 
-# --------------------------------------------------
 # 4. MIDDLEWARE
-# --------------------------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # 2nd place for static files
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -80,9 +66,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'hospital.urls'
 
-# --------------------------------------------------
-# 5. TEMPLATES (Fixed admin.E403)
-# --------------------------------------------------
+# 5. TEMPLATES
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -101,63 +85,26 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'hospital.wsgi.application'
-# --------------------------------------------------
-# DATABASE
-# --------------------------------------------------
 
-if DEBUG:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+# 6. DATABASE (Switched to Local SQLite)
+# This removes the "Connection Refused" error because it doesn't need a Postgres server
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('NAME'),
-            'USER': os.environ.get('USER'),
-            'PASSWORD': os.environ.get('PASSWORD'),
-            'HOST': os.environ.get('HOST'),
-            'PORT': os.environ.get('PORT'),
-        }
-    }
+}
 
-
-# --------------------------------------------------
-# 7. STATIC & MEDIA / AWS S3
-# --------------------------------------------------
+# 7. STATIC & MEDIA (Local File System)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-if not DEBUG:
-    # AWS S3 for Media, WhiteNoise for Static
-    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-    AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
-    AWS_S3_FILE_OVERWRITE = False
-    AWS_DEFAULT_ACL = None
-    AWS_QUERYSTRING_AUTH = False
+# Local storage only (removes AWS S3 dependency)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
-    STORAGES = {
-        "default": {
-            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-        },
-        "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-        },
-    }
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
-else:
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = BASE_DIR / 'media'
-
-# --------------------------------------------------
 # 8. AUTHENTICATION & MISC
-# --------------------------------------------------
 AUTH_USER_MODEL = 'accounts.User'
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
