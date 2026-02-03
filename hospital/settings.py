@@ -1,32 +1,38 @@
-from pathlib import Path
-import dj_database_url
 import os
+import dj_database_url
+from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv()
 
 # --------------------------------------------------
-# BASE DIRECTORY
+# 1. BASE DIRECTORY & ENV LOADING
 # --------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Loading .env with a specific path to avoid parse warnings
+env_path = BASE_DIR / ".env"
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
+
 # --------------------------------------------------
-# SECURITY
+# 2. SECURITY
 # --------------------------------------------------
-SECRET_KEY = os.environ.get('SECRET_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-key')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = ['local','127.0.0.1']
 
+# Allow local dev and the Railway production domain
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.railway.app']
 
-# CSRF Trusted Origins (for Railway and local)
+# Fixed CSRF for Railway production
 CSRF_TRUSTED_ORIGINS = [
-    'https://cabalalounge.up.railway.app',
+    'https://hospital.up.railway.app',
+    'https://*.railway.app',
 ]
 
 # --------------------------------------------------
-# APPLICATIONS
+# 3. APPLICATIONS (Fixed allauth registration)
 # --------------------------------------------------
 INSTALLED_APPS = [
-    'accounts', # Custom user app first
+    'accounts', # Your custom user app
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,6 +47,9 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'django_extensions',
+    'storages',
+    'crispy_forms',
+    'crispy_bootstrap5',
 
     # Hospital system apps
     'patients',
@@ -55,11 +64,11 @@ INSTALLED_APPS = [
 ]
 
 # --------------------------------------------------
-# MIDDLEWARE
+# 4. MIDDLEWARE
 # --------------------------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # 2nd place for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -67,14 +76,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    'manager.middleware.MaintenanceModeMiddleware',
-   
 ]
 
 ROOT_URLCONF = 'hospital.urls'
 
 # --------------------------------------------------
-# TEMPLATES
+# 5. TEMPLATES (Fixed admin.E403)
 # --------------------------------------------------
 TEMPLATES = [
     {
@@ -94,31 +101,49 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'hospital.wsgi.application'
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-# Use PostgreSQL on Railway, SQLite locally
-if DEBUG:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('NAME'),
-            'USER': os.environ.get('USER'),
-            'PASSWORD': os.environ.get('PASSWORD'),
-            'HOST': os.environ.get('HOST'),
-            'PORT': os.environ.get('PORT'),
-        }
-    }
-
 
 # --------------------------------------------------
-# AUTHENTICATION CONFIGURATION
+# 6. DATABASE (Auto-detect PostgreSQL vs SQLite)
+# --------------------------------------------------
+DATABASES = {
+    'default': dj_database_url.config(
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600,
+    )
+}
+
+# --------------------------------------------------
+# 7. STATIC & MEDIA / AWS S3
+# --------------------------------------------------
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+
+if not DEBUG:
+    # AWS S3 for Media, WhiteNoise for Static
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_DEFAULT_ACL = None
+    AWS_QUERYSTRING_AUTH = False
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+else:
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
+
+# --------------------------------------------------
+# 8. AUTHENTICATION & MISC
 # --------------------------------------------------
 AUTH_USER_MODEL = 'accounts.User'
 SITE_ID = 1
@@ -127,46 +152,9 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# Simple login/logout URLs
-LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'home'
-
-# --- ALLAUTH 65.0+ FIXES (Removes Warnings) ---
-ACCOUNT_LOGIN_METHODS = {'email', 'username'}
-# This replaces ACCOUNT_EMAIL_REQUIRED and ACCOUNT_USERNAME_REQUIRED
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
-ACCOUNT_EMAIL_VERIFICATION = 'none' 
-ACCOUNT_ADAPTER = 'allauth.account.adapter.DefaultAccountAdapter'
-ACCOUNT_LOGOUT_REDIRECT_URL = 'home'
-
-ACCOUNT_LOGOUT_ON_GET = True
-
-
-# --------------------------------------------------
-# STATIC & MEDIA
-# --------------------------------------------------
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# --------------------------------------------------
-# EMAIL CONFIGURATION
-# --------------------------------------------------
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'nyaw4027@gmail.com'
-# Use your 16-character Google App Password here
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', 'your-actual-app-password')
-DEFAULT_FROM_EMAIL = 'HMS Core Support <nyaw4027@gmail.com>'
-
-
-
-# Add this at the end of your Static section
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
